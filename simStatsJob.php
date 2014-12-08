@@ -19,15 +19,28 @@ catch(Exception $ex)
 $servers = $db->GetServers();
 foreach($servers as $server)
 {
+	if(!$server['enabled'])
+	{
+		continue;
+	}
+
 	$numAgentsInRegion = @file_get_contents($server['address'] . "/population");
 	if($numAgentsInRegion === false)
 	{
-		LogToFile("Failed to query server '" . $server['name'] . "' at: " . $server['address'] . "");
+		// TODO: GHETTO.
+		if(strstr($http_response_header[0], "404 Not Found"))
+		{
+			$db->SetServerStatus($server['id'], false);
+			LogToFile("Server '" . $server['name'] . "' returned status 404. Disabling server");
+		}
+		else
+		{
+			LogToFile("Failed to query server '" . $server['name'] . "' at: " . $server['address'] . "");
+		}
 		continue;
 	}
 
 	$db->CreateStats($server['id'], $numAgentsInRegion);
-	echo ("Server '" . $server['name'] . "' population = " . $numAgentsInRegion);
-	//LogToFile("Server '" . $server['name'] . "' population = " . $numAgentsInRegion);
+	echo ("Server '" . $server['name'] . "' population = " . $numAgentsInRegion . "\r\n");
 }
 

@@ -23,6 +23,18 @@ class SimstatsDatabase
 		$this->db = $newDb;
 	}
 
+	function SetServerStatus($serverId, $isEnabled)
+	{
+		$statement = $this->db->prepare("UPDATE servers SET
+											enabled = :isEnabled
+										WHERE id = :serverId
+										LIMIT 1");
+
+		$statement->bindParam('serverId', $serverId, PDO::PARAM_INT);
+		$statement->bindParam('isEnabled', $isEnabled, PDO::PARAM_INT);
+		$statement->execute();
+	}
+
 	function SetServerAddress($serverId, $ownerId, $address)
 	{
 		$statement = $this->db->prepare("UPDATE servers SET
@@ -54,6 +66,24 @@ class SimstatsDatabase
 		$statement->execute();
 
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
+	}
+
+	function GetServerName($serverId)
+	{
+		$statement = $this->db->prepare("SELECT name
+										FROM servers
+										WHERE id = :serverId");
+
+		$statement->execute(array(
+			'serverId' => $serverId
+		));
+
+		$result = $statement->fetch(PDO::FETCH_ASSOC);
+
+		if(!isset($result['name']))
+			return null;
+
+		return $result['name'];
 	}
 
 	function GetServerId($name)
@@ -187,9 +217,9 @@ class SimstatsDatabase
 	public function CreateStats($serverId, $agentCount)
 	{
 		$statement = $this->db->prepare("INSERT INTO stats (
-											serverId, agentCount
+											serverId, agentCount, time
 										) VALUES (
-											:serverId, :agentCount
+											:serverId, :agentCount, UNIX_TIMESTAMP()
 										)");
 
 		$statement->execute(array(
