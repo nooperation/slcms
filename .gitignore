@@ -1,0 +1,5 @@
+.idea
+.project
+*.log
+config.php
+web_critiquer.mwb.bak
