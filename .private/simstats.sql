@@ -75,7 +75,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `simstats`.`stats` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `serverId` INT UNSIGNED NOT NULL,
-  `time` TIMESTAMP NOT NULL,
+  `time` TIMESTAMP NOT NULL DEFAULT NOW(),
   `agentCount` TINYINT NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_serverId_idx` (`serverId` ASC),

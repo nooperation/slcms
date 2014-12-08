@@ -2,8 +2,10 @@
 
 class Config
 {
-	public static $DatabaseHost = "localhost";
-	public static $DatabaseUser = "root";
-	public static $DatabasePassword = "";
-	public static $DatabaseName = "simstats";
+	public static $SimStatsLogFile = "simstats.log";
+
+	public static $SimStatsDatabaseHost = "localhost";
+	public static $SimStatsDatabaseUser = "root";
+	public static $SimStatsDatabasePassword = "";
+	public static $SimStatsDatabaseName = "simstats";
 }

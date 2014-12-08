@@ -17,7 +17,7 @@ class SimstatsDatabase
 
 	public function ConnectToDatabase()
 	{
-		$newDb = new PDO("mysql:host=" . Config::$DatabaseHost . ";dbname=" . Config::$DatabaseName . ";charset=utf8", Config::$DatabaseUser, Config::$DatabasePassword );
+		$newDb = new PDO("mysql:host=" . Config::$SimStatsDatabaseHost . ";dbname=" . Config::$SimStatsDatabaseName . ";charset=utf8", Config::$SimStatsDatabaseUser, Config::$SimStatsDatabasePassword );
 		$newDb->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 		$this->db = $newDb;
@@ -35,6 +35,17 @@ class SimstatsDatabase
 			'ownerId' => $ownerId,
 			'address' => $address
 		));
+	}
+
+	function GetServersForFrontend()
+	{
+		$statement = $this->db->prepare("SELECT servers.id, servers.name as 'serverName', shards.name as 'shardName', users.name as 'userName', servers.enabled
+										FROM servers
+										left join shards on shards.id = servers.shardId
+										left join users on users.id = servers.ownerId;");
+		$statement->execute();
+
+		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	function GetServers()
@@ -71,6 +82,24 @@ class SimstatsDatabase
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
+	function GetShardName($shardId)
+	{
+		$statement = $this->db->prepare("SELECT name
+										FROM shards
+										WHERE id = :shardId");
+
+		$statement->execute(array(
+			'shardId' => $shardId
+		));
+
+		$result = $statement->fetch(PDO::FETCH_ASSOC);
+
+		if(!isset($result['name']))
+			return null;
+
+		return $result['name'];
+	}
+
 	function GetShardId($name)
 	{
 		$statement = $this->db->prepare("SELECT *
@@ -89,16 +118,17 @@ class SimstatsDatabase
 		return $result['id'];
 	}
 
-	function GetStats($serverId)
+	function GetStats($serverId, $limit)
 	{
 		$statement = $this->db->prepare("SELECT agentCount, time
 										FROM   stats
 										WHERE  serverId = :serverId
-										ORDER BY time");
+										ORDER BY time DESC
+										LIMIT :limit");
 
-		$statement->execute(array(
-			'serverId' => $serverId
-		));
+		$statement->bindParam('serverId', $serverId, PDO::PARAM_INT);
+		$statement->bindParam('limit', $limit, PDO::PARAM_INT);
+		$statement->execute();
 
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}
@@ -154,17 +184,16 @@ class SimstatsDatabase
 	}
 
 
-	public function CreateStats($serverId, $time, $agentCount)
+	public function CreateStats($serverId, $agentCount)
 	{
 		$statement = $this->db->prepare("INSERT INTO stats (
-											serverId, time, agentCount
+											serverId, agentCount
 										) VALUES (
-											:serverId, :time, :agentCount
+											:serverId, :agentCount
 										)");
 
 		$statement->execute(array(
 			'serverId' => $serverId,
-			'time' => $time,
 			'agentCount' => $agentCount,
 		));
 

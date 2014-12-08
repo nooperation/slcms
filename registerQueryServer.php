@@ -2,29 +2,7 @@
 
 include_once(dirname(__FILE__) . "./lib/SimStatsDatabase.php");
 include_once(dirname(__FILE__) . "./lib/SecondlifeHeader.php");
-
-function LogToFile($message, $messagePrivate = null)
-{
-	echo $message . "\r\n";
-
-	if(!isset($_SERVER["REMOTE_ADDR"]))
-	{
-		$remoteAddress = "NA";
-	}
-	else
-	{
-		$remoteAddress = $_SERVER["REMOTE_ADDR"];
-	}
-
-	if($messagePrivate)
-	{
-		file_put_contents("registerLog.log", "[" . date(DateTime::ISO8601) . "] " . $remoteAddress . " -> " . $message . " [PRIVATE: " . $messagePrivate . "]\n", FILE_APPEND);
-	}
-	else
-	{
-		file_put_contents("registerLog.log", "[" . date(DateTime::ISO8601) . "] " . $remoteAddress . " -> " . $message . "\n", FILE_APPEND);
-	}
-}
+include_once(dirname(__FILE__) . "./lib/Utils.php");
 
 if(!isset($_GET["queryUrl"]))
 {
@@ -52,7 +30,7 @@ catch(Exception $ex)
 try
 {
 	$shardId = $db->GetOrCreateShardId($slHeader->shard);
-	$ownerId = $db->GetOrCreateUserId($slHeader->ownerName, $slHeader->ownerKey);
+	$ownerId = $db->GetOrCreateUserId($slHeader->ownerKey, $slHeader->ownerName);
 
 	$db->CreateOrUpdateServer($slHeader->region, $shardId, $ownerId, $queryUrl);
 }
@@ -67,6 +45,6 @@ catch(Exception $ex)
 LogToFile("New or updated query server.");
 LogToFile("  shard = " . $slHeader->shard . " [id = " . $shardId . "]");
 LogToFile("  region = " . $slHeader->region);
-LogToFile("  owner = " . $slHeader->ownerName . " {" . $slHeader->ownerKey . "}");
+LogToFile("  owner = " . $slHeader->ownerName . " (" . $slHeader->ownerKey . ")");
 LogToFile("  url = " . $queryUrl);
 LogToFile("");
