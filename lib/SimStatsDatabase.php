@@ -54,7 +54,8 @@ class SimstatsDatabase
 		$statement = $this->db->prepare("SELECT servers.id, servers.name as 'serverName', shards.name as 'shardName', users.name as 'userName', servers.enabled
 										FROM servers
 										left join shards on shards.id = servers.shardId
-										left join users on users.id = servers.ownerId;");
+										left join users on users.id = servers.ownerId
+										where enabled = true;");
 		$statement->execute();
 
 		return $statement->fetchAll(PDO::FETCH_ASSOC);

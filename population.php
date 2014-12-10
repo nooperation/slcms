@@ -41,12 +41,10 @@
 <body ng-controller="graphList as graphListController"  onresize="redrawGraphs();" >
 <div ng-repeat="server in graphListController.servers" on-load="graphListController.onGraphInit(server)" init-graph-directive>
 	<div>
-		<p>Shard: {{server.shardName}}</p>
-		<p>Region: {{server.serverName}}</p>
-		<p>Owner: {{server.userName}}</p>
+		<h2>{{server.shardName}} | {{server.serverName}}</h2>
 	</div>
 	<div id="graph_{{server.id}}"></div>
-
+	<hr/>
 </div>
 </body>
 </html>

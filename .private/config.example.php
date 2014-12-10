@@ -7,5 +7,5 @@ class Config
 	public static $SimStatsDatabaseHost = "localhost";
 	public static $SimStatsDatabaseUser = "root";
 	public static $SimStatsDatabasePassword = "";
-	public static $SimStatsDatabaseName = "simstats";
+	public static $SimStatsDatabaseName = "simstats_master";
 }
