@@ -35,17 +35,19 @@ class SimstatsDatabase
 		$statement->execute();
 	}
 
-	function SetServerAddress($serverId, $ownerId, $address)
+	function UpdateServer($serverId, $ownerId, $address, $enabled)
 	{
 		$statement = $this->db->prepare("UPDATE servers SET
 											ownerId = :ownerId,
-											address = :address
+											address = :address,
+											enabled = :enabled
 										WHERE id = :serverId
 										LIMIT 1");
 		$statement->execute(array(
 			'serverId' => $serverId,
 			'ownerId' => $ownerId,
-			'address' => $address
+			'address' => $address,
+			'enabled' => $enabled
 		));
 	}
 
@@ -276,7 +278,7 @@ class SimstatsDatabase
 		}
 		else
 		{
-			$this->SetServerAddress($serverId, $ownerId, $address);
+			$this->UpdateServer($serverId, $ownerId, $address, $enabled);
 		}
 	}
 
