@@ -43,16 +43,13 @@ function redrawGraphs() {
 function drawGraph(data, element){
 
     // specify options
-    var options = {width:  "100%",
-       // height: "100%",
+    var options = {
+        width:  "100%",
         min: data.data[data.data.length-1].date,
         max: new Date(),
-        zoomMax: 86400000,
-        zoomMin: 86400000,
-        //	start: new Date(),
-        lines: [
-            {color: "#97C2FC", width: 2}
-        ],
+        lines: [{
+            color: "#97C2FC", width: 2, legend: false
+        }],
         tooltip: function (point) {
             return new Date(point.date) + '<br />Players: ' + point.value;
         }

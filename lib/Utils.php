@@ -1,6 +1,6 @@
 <?php
 
-include_once(dirname(__FILE__) . "./../.private/config.php");
+include_once(dirname(__FILE__) . "/../.private/config.php");
 
 function LogToFile($message, $messagePrivate = null)
 {

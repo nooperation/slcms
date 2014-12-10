@@ -39,7 +39,7 @@
 </head>
 
 <body ng-controller="graphList as graphListController"  onresize="redrawGraphs();" >
-<div ng-repeat="server in graphListController.servers" on-load="graphListController.onGraphInit(server)" init-graph-directive>
+<div ng-repeat="server in graphListController.servers"  init-graph-directive>
 	<div>
 		<h2>{{server.shardName}} | {{server.serverName}}</h2>
 	</div>

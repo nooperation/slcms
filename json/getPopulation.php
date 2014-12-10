@@ -1,7 +1,7 @@
 <?php
 
-include_once(dirname(__FILE__) . "./../lib/SimStatsDatabase.php");
-include_once(dirname(__FILE__) . "./../lib/Utils.php");
+include_once(dirname(__FILE__) . "/../lib/SimStatsDatabase.php");
+include_once(dirname(__FILE__) . "/../lib/Utils.php");
 
 class DataSet
 {

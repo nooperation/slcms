@@ -107,3 +107,11 @@ div.graph-tooltip-label table {
 div.graph-tooltip-label td {
     vertical-align: top;
 }
+
+div.graph-axis-button {
+    visibility: collapse;
+}
+
+div.graph-frame {
+    margin-left: -1%;
+}

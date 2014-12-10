@@ -1,8 +1,8 @@
 <?php
 
-include_once(dirname(__FILE__) . "./lib/SimStatsDatabase.php");
-include_once(dirname(__FILE__) . "./lib/SecondlifeHeader.php");
-include_once(dirname(__FILE__) . "./lib/Utils.php");
+include_once(dirname(__FILE__) . "/lib/SimStatsDatabase.php");
+include_once(dirname(__FILE__) . "/lib/SecondlifeHeader.php");
+include_once(dirname(__FILE__) . "/lib/Utils.php");
 
 if(!isset($_GET["queryUrl"]))
 {
