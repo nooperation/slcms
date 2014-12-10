@@ -11,7 +11,7 @@ try
 catch(Exception $ex)
 {
 	http_response_code("500");
-	LogToFile("Failed to connect to database. See log for details.", $ex->getMessage());
+	LogAndEchoJson("Failed to connect to database. See log for details.", $ex->getMessage());
 	die();
 }
 

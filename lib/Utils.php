@@ -2,10 +2,21 @@
 
 include_once(dirname(__FILE__) . "/../.private/config.php");
 
-function LogToFile($message, $messagePrivate = null)
+function LogAndEchoJson($message, $messagePrivate = null)
+{
+	echo '{"error":"' . $message . '"}';
+	LogToFile($message, $messagePrivate);
+}
+
+function LogAndEcho($message, $messagePrivate = null)
 {
 	echo $message . "\r\n";
 
+	LogToFile($message, $messagePrivate);
+}
+
+function LogToFile($message, $messagePrivate = null)
+{
 	if(Config::$SimStatsLogFile)
 	{
 		if(!isset($_SERVER["REMOTE_ADDR"]))

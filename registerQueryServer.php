@@ -41,7 +41,7 @@ catch(Exception $ex)
 	die();
 }
 
-
+echo "OK";
 LogToFile("New or updated query server.");
 LogToFile("  shard = " . $slHeader->shard . " [id = " . $shardId . "]");
 LogToFile("  region = " . $slHeader->region);

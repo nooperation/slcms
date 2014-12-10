@@ -52,7 +52,7 @@ try
 catch(Exception $ex)
 {
 	http_response_code("500");
-	LogToFile("Failed to connect to database. See log for details.", $ex->getMessage());
+	LogAndEchoJson("Failed to connect to database. See log for details.", $ex->getMessage());
 	die();
 }
 
@@ -63,7 +63,8 @@ try
 }
 catch(Exception $ex)
 {
-	LogToFile("Failed to get population of server. See log for details.", $ex->getMessage());
+	http_response_code("500");
+	LogAndEchoJson("Failed to get population of server. See log for details.", $ex->getMessage());
 	die();
 }
 
