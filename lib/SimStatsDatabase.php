@@ -151,16 +151,21 @@ class SimstatsDatabase
 		return $result['id'];
 	}
 
-	function GetStats($serverId, $limit)
+	function GetStats($serverId, $min, $max)
 	{
+		if($min === null)
+			$min = 0;
+		if($max === null)
+			$max = PHP_INT_MAX;
+
 		$statement = $this->db->prepare("SELECT agentCount, time
 										FROM   stats
-										WHERE  serverId = :serverId
-										ORDER BY time ASC
-										LIMIT :limit");
+										WHERE  serverId = :serverId and time >= :min and time <= :max
+										ORDER BY time ASC");
 
 		$statement->bindParam('serverId', $serverId, PDO::PARAM_INT);
-		$statement->bindParam('limit', $limit, PDO::PARAM_INT);
+		$statement->bindParam('min', $min, PDO::PARAM_INT);
+		$statement->bindParam('max', $max, PDO::PARAM_INT);
 		$statement->execute();
 
 		return $statement->fetchAll(PDO::FETCH_ASSOC);

@@ -32,12 +32,17 @@ if(!isset($_GET['serverId']))
 	die("Missing serverId");
 }
 $serverId = $_GET['serverId'];
-$limit = 250;
 $format = null;
 
-if(isset($_GET['limit']))
+$start = null;
+$end = null;
+if(isset($_GET['start']) && is_numeric($_GET['start']))
 {
-	$limit = $_GET['limit'];
+	$start = intval($_GET['start']);
+}
+if(isset($_GET['end']) && is_numeric($_GET['end']))
+{
+	$end = intval($_GET['end']);
 }
 if(isset($_GET['format']))
 {
@@ -58,7 +63,7 @@ catch(Exception $ex)
 
 try
 {
-	$stats = $db->GetStats($serverId, $limit);
+	$stats = $db->GetStats($serverId, $start, $end);
 	$serverName = $db->GetServerName($serverId);
 }
 catch(Exception $ex)
