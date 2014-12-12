@@ -156,7 +156,7 @@ class SimstatsDatabase
 		$statement = $this->db->prepare("SELECT agentCount, time
 										FROM   stats
 										WHERE  serverId = :serverId
-										ORDER BY time DESC
+										ORDER BY time ASC
 										LIMIT :limit");
 
 		$statement->bindParam('serverId', $serverId, PDO::PARAM_INT);

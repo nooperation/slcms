@@ -34,6 +34,16 @@
 			top: 0px;
 			left: 0px;
 		}
+		
+		td.child {
+			padding: 0 !important;
+			border: 5px solid #808080;
+		}
+
+		iframe {
+			width: 100%;
+			height: 100px;
+		}
 	</style>
 
 </head>

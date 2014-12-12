@@ -1,0 +1,17 @@
+.lowUsage {
+	background: lightgreen;
+}
+.mediumUsage {
+	background: yellow;
+}
+.highUsage {
+	background: red;
+}
+
+div.graph-axis-button {
+	visibility: collapse;
+}
+
+div.graph-frame {
+	margin-left: -1%;
+}

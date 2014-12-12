@@ -24,8 +24,11 @@ myApp.directive('initGraphDirective',['$http', function($http) {
     return function(scope, element, attrs) {
         var serverId = scope.server.id;
 
+        var today = Math.round(new Date()/1000);
+        var yesterday = today - 86400;
+
         // TODO: DOM elements haven't been added just yet... we're just hoping the http request takes enough time for all the graph divs to have evaluated by now
-        $http.get('json/getPopulation.php?format=google&serverId=' + serverId).success(function(data) {
+        $http.get('json/getPopulation.php?format=google&serverId=' + serverId + "&start=" + yesterday + "&end=" + today).success(function(data) {
 
             if(data.data.length > 0) {
                 drawGraph(data, document.getElementById("graph_" + serverId));
@@ -44,13 +47,13 @@ function drawGraph(data, element){
 
     // specify options
     var options = {
-        width:  "100%",
-        min: data.data[data.data.length-1].date,
-        max: new Date(),
-        lines: [{
+        "width": "100%",
+        "min": data.data[0].date,
+        "max": data.data[data.data.length-1].date,
+        "lines": [{
             color: "#97C2FC", width: 2, legend: false
         }],
-        tooltip: function (point) {
+        "tooltip": function (point) {
             return new Date(point.date) + '<br />Players: ' + point.value;
         }
     };
