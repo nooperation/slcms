@@ -64,7 +64,13 @@ myApp.controller('graphListController',['$http', function($http){
     };
 
     this.loadTable = function(serverId) {
-        var table = $("#usersTable_" + serverId).DataTable({
+        var tableElement =  $("#usersTable_" + serverId);
+
+        if( $.fn.dataTable.isDataTable(tableElement)) {
+            tableElement.destroy();
+        }
+
+        tableElement.DataTable({
             "order": [5, "desc"],
             "bSortClasses": false,
             "searching": false,
