@@ -20,7 +20,6 @@
 	<link rel="stylesheet" type="text/css" href="css/custom.css">
 
 
-
 	<style type="text/css">
 		html, body {
 			font: 10pt arial;
@@ -56,26 +55,28 @@
 </head>
 
 <body ng-controller="graphListController as graphList" onresize="redrawGraphs();" >
-	<div ng-repeat="server in graphList.servers">
-		<div id="server_{{server.id}}">
-			<div id="header_{{server.id}}" ng-click="graphList.showGraph(server.id)">
-				<h2>Shard: {{server.shardName}} | Region: {{server.serverName}} | Population: {{server.currentPopulation}}</h2>
-			</div>
-			<div id="contents_{{server.id}}" ng-show="graphList.isShown(server.id)">
-				<div id="graph_{{server.id}}" ></div>
-				<div>
-					<table id="usersTable_{{server.id}}" cellpadding="0" class="display" width="100%">
-						<thead>
-							<tr>
-								<th>Display Name</th>
-								<th>Username</th>
-								<th>Key</th>
-								<th>Position</th>
-								<th>Memory</th>
-								<th>CPU</th>
-							</tr>
-						</thead>
-					</table>
+	<div class="serverList">
+		<div ng-repeat="server in graphList.servers">
+			<div class="server" id="server_{{server.id}}">
+				<div class="serverHeader" id="header_{{server.id}}" ng-click="graphList.showGraph(server.id)">
+					<h2 class="serverHeaderName">Shard: {{server.shardName}} | Region: {{server.serverName}} | Population: {{server.currentPopulation}}</h2>
+				</div>
+				<div class="serverContents" id="contents_{{server.id}}" ng-show="graphList.isShown(server.id)">
+					<div id="graph_{{server.id}}" ></div>
+					<div>
+						<table id="usersTable_{{server.id}}" cellpadding="0" class="display" width="100%">
+							<thead>
+								<tr>
+									<th>Display Name</th>
+									<th>Username</th>
+									<th>Key</th>
+									<th>Position</th>
+									<th>Memory</th>
+									<th>CPU</th>
+								</tr>
+							</thead>
+						</table>
+					</div>
 				</div>
 			</div>
 		</div>

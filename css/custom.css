@@ -15,3 +15,68 @@ div.graph-axis-button {
 div.graph-frame {
 	margin-left: -1%;
 }
+
+
+.serverList{
+    margin-left: auto;
+    margin-right: auto;
+    padding: 15px;
+}
+
+.server{
+    width: 100%;
+    min-width:1300px;
+    height: 0%;
+    margin: 0px;
+    background:  	#DEDFCF;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    margin-bottom: 10px;
+    border-radius: 25px;
+    box-shadow: 2px 2px 2px #2B2626;
+}
+
+.serverHeaderName {
+    padding: 5px;
+    /*width: 625px;
+    max-width: 625px;*/
+    width: 100%;
+    margin-left: 5px;
+    font-size: 18px;
+
+    word-spacing: normal;
+    line-height: 1;
+    font-family: Verdana;
+}
+
+.critiqueHeaderAvg {
+    text-align: center;
+    width: 150px;
+    min-width: 150px;
+    border-radius: 25px;
+    padding: 5px;
+    margin-right: 5px;
+
+    line-height: 1;
+    font-family: Verdana;
+}
+
+.serverContents{
+    height: 425px;
+    overflow: auto;
+    overflow-x: hidden;
+    margin-left:  10px;
+    margin-right: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    background: #DEDFCF;
+    border-radius: 25px;
+    box-shadow: 1px 1px 8px #665F5F;
+}
+
+.serverHeader{
+    display: flex;
+}
+

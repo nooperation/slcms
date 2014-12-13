@@ -120,25 +120,6 @@ myApp.controller('graphListController',['$http', function($http){
         });
     };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     $http.get('json/getServers.php').success(function(data) {
         base.servers = data;
     })
