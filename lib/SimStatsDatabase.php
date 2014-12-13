@@ -81,7 +81,7 @@ class SimstatsDatabase
 													stats
 												WHERE
 													servers.id = stats.serverid
-												ORDER BY time ASC
+												ORDER BY time DESC
 												LIMIT 1) AS currentPopulation
 										FROM
 											servers
