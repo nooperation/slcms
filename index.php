@@ -12,8 +12,14 @@
 	<script type="text/javascript" src="js/graph-min.js"></script>
 	<script type="text/javascript" src="js/app.js"></script>
 
-	<!--[if IE]><script type="text/javascript" src="js/excanvas.js"></script><![endif]-->
+	<script type="text/javascript" src="./js/jquery.js"></script>
+	<script type="text/javascript" src="./js/jquery.dataTables.min.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="./css/jquery.dataTables.min.css">
 	<link rel="stylesheet" type="text/css" href="css/graph.css">
+	<link rel="stylesheet" type="text/css" href="css/custom.css">
+
+
 
 	<style type="text/css">
 		html, body {
@@ -44,17 +50,35 @@
 			width: 100%;
 			height: 100px;
 		}
+
 	</style>
 
 </head>
 
-<body ng-controller="graphList as graphListController"  onresize="redrawGraphs();" >
-<div ng-repeat="server in graphListController.servers"  init-graph-directive>
-	<div>
-		<h2>{{server.shardName}} | {{server.serverName}}</h2>
+<body ng-controller="graphListController as graphList" onresize="redrawGraphs();" >
+	<div ng-repeat="server in graphList.servers">
+		<div id="server_{{server.id}}">
+			<div id="header_{{server.id}}" ng-click="graphList.showGraph(server.id)">
+				<h2>Shard: {{server.shardName}} | Region: {{server.serverName}} | Population: {{server.currentPopulation}}</h2>
+			</div>
+			<div id="contents_{{server.id}}" ng-show="graphList.isShown(server.id)">
+				<div id="graph_{{server.id}}" ></div>
+				<div>
+					<table id="usersTable_{{server.id}}" cellpadding="0" class="display" width="100%">
+						<thead>
+							<tr>
+								<th>Display Name</th>
+								<th>Username</th>
+								<th>Key</th>
+								<th>Position</th>
+								<th>Memory</th>
+								<th>CPU</th>
+							</tr>
+						</thead>
+					</table>
+				</div>
+			</div>
+		</div>
 	</div>
-	<div id="graph_{{server.id}}"></div>
-	<hr/>
-</div>
 </body>
 </html>

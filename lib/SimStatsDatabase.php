@@ -51,13 +51,44 @@ class SimstatsDatabase
 		));
 	}
 
+	function GetServerAddress($serverId)
+	{
+		$statement = $this->db->prepare("SELECT servers.address FROM servers WHERE servers.id = :serverId LIMIT 1");
+
+		$statement->execute(array(
+			'serverId' => $serverId
+		));
+
+		$result = $statement->fetch(PDO::FETCH_ASSOC);
+
+		if(!isset($result['address']))
+			return null;
+
+		return $result['address'];
+	}
+
 	function GetServersForFrontend()
 	{
-		$statement = $this->db->prepare("SELECT servers.id, servers.name as 'serverName', shards.name as 'shardName', users.name as 'userName', servers.enabled
-										FROM servers
-										left join shards on shards.id = servers.shardId
-										left join users on users.id = servers.ownerId
-										where enabled = true;");
+		$statement = $this->db->prepare("SELECT
+											servers.id,
+											servers.name AS 'serverName',
+											shards.name AS 'shardName',
+											users.name AS 'userName',
+											servers.enabled,
+											(SELECT
+													agentCount
+												FROM
+													stats
+												WHERE
+													servers.id = stats.serverid
+												ORDER BY time ASC
+												LIMIT 1) AS currentPopulation
+										FROM
+											servers
+											LEFT JOIN shards ON shards.id = servers.shardId
+											LEFT JOIN users ON users.id = servers.ownerId
+										WHERE
+											enabled = TRUE;");
 		$statement->execute();
 
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
