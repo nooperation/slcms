@@ -7,7 +7,6 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 -- -----------------------------------------------------
 -- Schema simstats_master
 -- -----------------------------------------------------
-DROP SCHEMA IF EXISTS `simstats_master` ;
 
 -- -----------------------------------------------------
 -- Schema simstats_master
@@ -18,6 +17,8 @@ USE `simstats_master` ;
 -- -----------------------------------------------------
 -- Table `simstats_master`.`shards`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simstats_master`.`shards` ;
+
 CREATE TABLE IF NOT EXISTS `simstats_master`.`shards` (
   `id` TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
@@ -29,13 +30,20 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `simstats_master`.`users`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simstats_master`.`users` ;
+
 CREATE TABLE IF NOT EXISTS `simstats_master`.`users` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `shardId` TINYINT UNSIGNED NOT NULL,
   `uuid` VARCHAR(36) NOT NULL,
   `name` VARCHAR(63) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `key_UNIQUE` (`uuid` ASC),
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC))
+  INDEX `fk_users_shards1_idx` (`shardId` ASC),
+  CONSTRAINT `fk_users_shards1`
+    FOREIGN KEY (`shardId`)
+    REFERENCES `simstats_master`.`shards` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT)
 ENGINE = InnoDB
 AUTO_INCREMENT = 141
 DEFAULT CHARACTER SET = utf8;
@@ -44,6 +52,8 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 -- Table `simstats_master`.`servers`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simstats_master`.`servers` ;
+
 CREATE TABLE IF NOT EXISTS `simstats_master`.`servers` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
@@ -64,14 +74,16 @@ CREATE TABLE IF NOT EXISTS `simstats_master`.`servers` (
   CONSTRAINT `fk_ownerId`
     FOREIGN KEY (`ownerId`)
     REFERENCES `simstats_master`.`users` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
 -- Table `simstats_master`.`stats`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simstats_master`.`stats` ;
+
 CREATE TABLE IF NOT EXISTS `simstats_master`.`stats` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `serverId` INT UNSIGNED NOT NULL,

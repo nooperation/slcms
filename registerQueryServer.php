@@ -30,7 +30,7 @@ catch(Exception $ex)
 try
 {
 	$shardId = $db->GetOrCreateShardId($slHeader->shard);
-	$ownerId = $db->GetOrCreateUserId($slHeader->ownerKey, $slHeader->ownerName);
+	$ownerId = $db->GetOrCreateUserId($slHeader->ownerKey, $slHeader->ownerName, $shardId);
 
 	$db->CreateOrUpdateServer($slHeader->region, $shardId, $ownerId, $queryUrl);
 }

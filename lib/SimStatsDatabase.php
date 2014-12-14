@@ -202,14 +202,16 @@ class SimstatsDatabase
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
-	public function GetUserId($userKey)
+	public function GetUserId($userKey, $shardId)
 	{
 		$statement = $this->db->prepare("SELECT id
 										FROM users
-										WHERE uuid = :uuid");
+										WHERE uuid = :uuid
+										AND shardId = :shardId");
 
 		$statement->execute(array(
-			'uuid' => $userKey
+			'uuid' => $userKey,
+			'shardId' => $shardId
 		));
 
 		$result = $statement->fetch(PDO::FETCH_ASSOC);
@@ -220,17 +222,18 @@ class SimstatsDatabase
 		return $result['id'];
 	}
 
-	public function CreateUser($userKey, $name)
+	public function CreateUser($userKey, $name, $shardId)
 	{
 		$statement = $this->db->prepare("INSERT INTO users (
-											uuid, name
+											uuid, name, shardId
 										) VALUES (
-											:uuid, :name
+											:uuid, :name, :shardId
 										)");
 
 		$statement->execute(array(
 			'uuid' => $userKey,
-			'name' => $name
+			'name' => $name,
+			'shardId' => $shardId
 		));
 
 		if(!$statement->rowCount())
@@ -241,29 +244,30 @@ class SimstatsDatabase
 		return $this->db->lastInsertId();
 	}
 
-	public function GetOrCreateUserId($userKey, $name)
+	public function GetOrCreateUserId($userKey, $name, $shardId)
 	{
-		$userId = $this->GetUserId($userKey);
+		$userId = $this->GetUserId($userKey, $shardId);
 		if($userId === null)
 		{
-			$userId = $this->CreateUser($userKey, $name);
+			$userId = $this->CreateUser($userKey, $name, $shardId);
 		}
 
 		return $userId;
 	}
 
 
-	public function CreateStats($serverId, $agentCount)
+	public function CreateStats($serverId, $time, $agentCount)
 	{
 		$statement = $this->db->prepare("INSERT INTO stats (
 											serverId, agentCount, time
 										) VALUES (
-											:serverId, :agentCount, UNIX_TIMESTAMP()
+											:serverId, :agentCount, :time
 										)");
 
 		$statement->execute(array(
 			'serverId' => $serverId,
 			'agentCount' => $agentCount,
+			'time' => $time
 		));
 
 		if(!$statement->rowCount())
