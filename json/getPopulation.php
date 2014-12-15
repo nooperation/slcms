@@ -78,8 +78,13 @@ if($format == "google")
 	$googleData = new DataSet($serverName);
 	for($i = 0; $i < sizeof($stats); ++$i)
 	{
+		if($i != 0)
+		{
+			$googleData->data []= new DataSetData(((int)$stats[$i]['time'] * 1000) - 1, (int)$stats[$i-1]['agentCount']);
+		}
 		$googleData->data []= new DataSetData((int)$stats[$i]['time'] * 1000, (int)$stats[$i]['agentCount']);
 	}
+	$googleData->data []= new DataSetData((int)time() * 1000, (int)$stats[sizeof($stats) - 1]['agentCount']);
 
 	echo json_encode($googleData);
 }
