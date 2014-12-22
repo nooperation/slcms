@@ -28,7 +28,7 @@ div.graph-frame {
     min-width:1300px;
     height: 0%;
     margin: 0px;
-    background:  	#DEDFCF;
+    background:  	#D1D1D1;
     padding-bottom: 5px;
     padding-top: 5px;
     margin-bottom: 10px;
@@ -62,7 +62,6 @@ div.graph-frame {
 }
 
 .serverContents{
-    height: 425px;
     overflow: auto;
     overflow-x: hidden;
     margin-left:  10px;
@@ -71,7 +70,8 @@ div.graph-frame {
     margin-bottom: 10px;
     padding-left: 15px;
     padding-right: 15px;
-    background: #DEDFCF;
+    padding-bottom: 15px;
+    background: #FFFFFF;
     border-radius: 25px;
     box-shadow: 1px 1px 8px #665F5F;
 }
