@@ -160,6 +160,12 @@ default
             llHTTPResponse(requestId, 200, BuildQueryResult());
             return;
         }
+        else if(firstPathPart == "reset")
+        {
+            llHTTPResponse(requestId, 200, "OK");
+            llResetScript();
+            return;
+        }
         
         llHTTPResponse(requestId, 501, "Not Implemented");
     }

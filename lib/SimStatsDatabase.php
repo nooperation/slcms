@@ -23,14 +23,14 @@ class SimstatsDatabase
 		$this->db = $newDb;
 	}
 
-	function SetServerStatus($serverId, $isEnabled)
+	function SetServerStatus($uuid, $isEnabled)
 	{
 		$statement = $this->db->prepare("UPDATE servers SET
 											enabled = :isEnabled
-										WHERE id = :serverId
+										WHERE uuid = :uuid
 										LIMIT 1");
 
-		$statement->bindParam('serverId', $serverId, PDO::PARAM_INT);
+		$statement->bindParam('uuid', $uuid, PDO::PARAM_INT);
 		$statement->bindParam('isEnabled', $isEnabled, PDO::PARAM_INT);
 		$statement->execute();
 	}

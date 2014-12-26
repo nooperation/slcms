@@ -64,7 +64,6 @@ CREATE TABLE IF NOT EXISTS `simstats_master`.`servers` (
   `address` VARCHAR(255) NOT NULL,
   `enabled` TINYINT(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   UNIQUE INDEX `address_UNIQUE` (`address` ASC),
   INDEX `fk_shardId_idx` (`shardId` ASC),
   INDEX `fk_ownerId_idx` (`ownerId` ASC),
