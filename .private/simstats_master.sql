@@ -56,16 +56,20 @@ DROP TABLE IF EXISTS `simstats_master`.`servers` ;
 
 CREATE TABLE IF NOT EXISTS `simstats_master`.`servers` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(255) NOT NULL,
   `shardId` TINYINT UNSIGNED NOT NULL,
+  `ownerId` INT UNSIGNED NOT NULL,
+  `uuid` VARCHAR(36) NOT NULL,
+  `objectId` VARCHAR(36) NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
   `address` VARCHAR(255) NOT NULL,
   `enabled` TINYINT(1) NOT NULL DEFAULT 1,
-  `ownerId` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   UNIQUE INDEX `address_UNIQUE` (`address` ASC),
   INDEX `fk_shardId_idx` (`shardId` ASC),
   INDEX `fk_ownerId_idx` (`ownerId` ASC),
+  UNIQUE INDEX `uuid_UNIQUE` (`uuid` ASC),
+  UNIQUE INDEX `objectId_UNIQUE` (`objectId` ASC),
   CONSTRAINT `fk_shardId`
     FOREIGN KEY (`shardId`)
     REFERENCES `simstats_master`.`shards` (`id`)

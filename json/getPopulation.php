@@ -31,7 +31,7 @@ if(!isset($_GET['serverId']))
 {
 	die("Missing serverId");
 }
-$serverId = $_GET['serverId'];
+$uuid = $_GET['serverId'];
 $format = null;
 
 $start = null;
@@ -63,8 +63,15 @@ catch(Exception $ex)
 
 try
 {
-	$stats = $db->GetStats($serverId, $start, $end);
-	$serverName = $db->GetServerName($serverId);
+	$serverNameAndId = $db->GetServerNameAndId($uuid);
+	if($serverNameAndId === null)
+	{
+		http_response_code("500");
+		LogAndEchoJson("Server not found.");
+		die();
+	}
+
+	$stats = $db->GetStats($serverNameAndId['id'], $start, $end);
 }
 catch(Exception $ex)
 {
@@ -73,19 +80,22 @@ catch(Exception $ex)
 	die();
 }
 
+
 if($format == "google")
 {
-	$googleData = new DataSet($serverName);
-	for($i = 0; $i < sizeof($stats); ++$i)
+	$googleData = new DataSet($serverNameAndId['name']);
+	if(sizeof($stats) > 0)
 	{
-		if($i != 0)
+		for($i = 0; $i < sizeof($stats); ++$i)
 		{
-			$googleData->data []= new DataSetData(((int)$stats[$i]['time'] * 1000) - 1, (int)$stats[$i-1]['agentCount']);
+			if($i != 0)
+			{
+				$googleData->data [] = new DataSetData(((int)$stats[$i]['time'] * 1000) - 1, (int)$stats[$i - 1]['agentCount']);
+			}
+			$googleData->data [] = new DataSetData((int)$stats[$i]['time'] * 1000, (int)$stats[$i]['agentCount']);
 		}
-		$googleData->data []= new DataSetData((int)$stats[$i]['time'] * 1000, (int)$stats[$i]['agentCount']);
+		$googleData->data [] = new DataSetData((int)time() * 1000, (int)$stats[sizeof($stats) - 1]['agentCount']);
 	}
-	$googleData->data []= new DataSetData((int)time() * 1000, (int)$stats[sizeof($stats) - 1]['agentCount']);
-
 	echo json_encode($googleData);
 }
 else

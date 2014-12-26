@@ -32,7 +32,7 @@ try
 	$shardId = $db->GetOrCreateShardId($slHeader->shard);
 	$ownerId = $db->GetOrCreateUserId($slHeader->ownerKey, $slHeader->ownerName, $shardId);
 
-	$db->CreateOrUpdateServer($slHeader->region, $shardId, $ownerId, $queryUrl);
+	$db->CreateOrUpdateServer($slHeader->objectName, $shardId, $ownerId, $queryUrl, $slHeader->objectKey);
 }
 catch(Exception $ex)
 {
@@ -45,6 +45,7 @@ echo "OK";
 LogToFile("New or updated query server.");
 LogToFile("  shard = " . $slHeader->shard . " [id = " . $shardId . "]");
 LogToFile("  region = " . $slHeader->region);
+LogToFile("  name  = " . $slHeader->objectName);
 LogToFile("  owner = " . $slHeader->ownerName . " (" . $slHeader->ownerKey . ")");
 LogToFile("  url = " . $queryUrl);
 LogToFile("");

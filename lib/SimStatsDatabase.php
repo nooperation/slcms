@@ -35,28 +35,30 @@ class SimstatsDatabase
 		$statement->execute();
 	}
 
-	function UpdateServer($serverId, $ownerId, $address, $enabled)
+	function UpdateServer($uuid, $name, $ownerId, $address, $enabled)
 	{
 		$statement = $this->db->prepare("UPDATE servers SET
+											name = :name,
 											ownerId = :ownerId,
 											address = :address,
 											enabled = :enabled
-										WHERE id = :serverId
+										WHERE uuid = :uuid
 										LIMIT 1");
 		$statement->execute(array(
-			'serverId' => $serverId,
+			'uuid' => $uuid,
+			'name' => $name,
 			'ownerId' => $ownerId,
 			'address' => $address,
 			'enabled' => $enabled
 		));
 	}
 
-	function GetServerAddress($serverId)
+	function GetServerAddress($uuid)
 	{
-		$statement = $this->db->prepare("SELECT servers.address FROM servers WHERE servers.id = :serverId LIMIT 1");
+		$statement = $this->db->prepare("SELECT servers.address FROM servers WHERE servers.uuid = :uuid LIMIT 1");
 
 		$statement->execute(array(
-			'serverId' => $serverId
+			'uuid' => $uuid
 		));
 
 		$result = $statement->fetch(PDO::FETCH_ASSOC);
@@ -70,7 +72,7 @@ class SimstatsDatabase
 	function GetServersForFrontend()
 	{
 		$statement = $this->db->prepare("SELECT
-											servers.id,
+											servers.uuid,
 											servers.name AS 'serverName',
 											shards.name AS 'shardName',
 											users.name AS 'userName',
@@ -102,32 +104,14 @@ class SimstatsDatabase
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
-	function GetServerName($serverId)
+	function GetServerNameAndId($uuid)
 	{
-		$statement = $this->db->prepare("SELECT name
+		$statement = $this->db->prepare("SELECT id,name
 										FROM servers
-										WHERE id = :serverId");
+										WHERE uuid = :uuid");
 
 		$statement->execute(array(
-			'serverId' => $serverId
-		));
-
-		$result = $statement->fetch(PDO::FETCH_ASSOC);
-
-		if(!isset($result['name']))
-			return null;
-
-		return $result['name'];
-	}
-
-	function GetServerId($name)
-	{
-		$statement = $this->db->prepare("SELECT id
-										FROM servers
-										WHERE name = :name");
-
-		$statement->execute(array(
-			'name' => $name
+			'uuid' => $uuid
 		));
 
 		$result = $statement->fetch(PDO::FETCH_ASSOC);
@@ -135,7 +119,25 @@ class SimstatsDatabase
 		if(!isset($result['id']))
 			return null;
 
-		return $result['id'];
+		return $result;
+	}
+
+	function GetServerUuidFromObjectId($objectId)
+	{
+		$statement = $this->db->prepare("SELECT uuid
+										FROM servers
+										WHERE objectId = :objectId");
+
+		$statement->execute(array(
+			'objectId' => $objectId
+		));
+
+		$result = $statement->fetch(PDO::FETCH_ASSOC);
+
+		if(!isset($result['uuid']))
+			return null;
+
+		return $result['uuid'];
 	}
 
 	function GetShards()
@@ -255,7 +257,6 @@ class SimstatsDatabase
 		return $userId;
 	}
 
-
 	public function CreateStats($serverId, $time, $agentCount)
 	{
 		$statement = $this->db->prepare("INSERT INTO stats (
@@ -309,25 +310,25 @@ class SimstatsDatabase
 		return $this->db->lastInsertId();
 	}
 
-	public function CreateOrUpdateServer($name, $shardId, $ownerId, $address, $enabled = 1)
+	public function CreateOrUpdateServer($name, $shardId, $ownerId, $address, $objectId, $enabled = 1)
 	{
-		$serverId = $this->GetServerId($name);
-		if($serverId == null)
+		$uuid = $this->GetServerUuidFromObjectId($objectId);
+		if($uuid == null)
 		{
-			$this->CreateServer($name, $shardId, $ownerId, $address, $enabled);
+			$this->CreateServer($name, $shardId, $ownerId, $address, $objectId, $enabled);
 		}
 		else
 		{
-			$this->UpdateServer($serverId, $ownerId, $address, $enabled);
+			$this->UpdateServer($uuid, $name, $ownerId, $address, $enabled);
 		}
 	}
 
-	public function CreateServer($name, $shardId, $ownerId, $address, $enabled = 1)
+	public function CreateServer($name, $shardId, $ownerId, $address, $objectId, $enabled = 1)
 	{
 		$statement = $this->db->prepare("INSERT INTO servers (
-											name, shardId, address, ownerId, enabled
+											name, shardId, address, ownerId, enabled, uuid, objectId
 										) VALUES (
-											:name, :shardId, :address, :ownerId, :enabled
+											:name, :shardId, :address, :ownerId, :enabled, UUID(), :objectId
 										)");
 
 		$statement->execute(array(
@@ -335,7 +336,8 @@ class SimstatsDatabase
 			'shardId' => $shardId,
 			'address' => $address,
 			'ownerId' => $ownerId,
-			'enabled' => $enabled
+			'enabled' => $enabled,
+			'objectId' => $objectId
 		));
 
 		if(!$statement->rowCount())

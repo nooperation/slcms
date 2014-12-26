@@ -57,14 +57,14 @@
 <body ng-controller="graphListController as graphList" onresize="redrawGraphs();" >
 	<div class="serverList">
 		<div ng-repeat="server in graphList.servers">
-			<div class="server" id="server_{{server.id}}">
-				<div class="serverHeader" id="header_{{server.id}}" ng-click="graphList.showGraph(server.id)">
-					<h2 class="serverHeaderName">Shard: {{server.shardName}} | Region: {{server.serverName}} | Population: {{server.currentPopulation}}</h2>
+			<div class="server" id="server_{{server.uuid}}">
+				<div class="serverHeader" id="header_{{server.uuid}}" ng-click="graphList.showGraph(server.uuid)">
+					<h2 class="serverHeaderName">Shard: {{server.shardName}} | Name: {{server.serverName}} | Population: {{server.currentPopulation}}</h2>
 				</div>
-				<div class="serverContents" id="contents_{{server.id}}" ng-show="graphList.isShown(server.id)">
-					<div id="graph_{{server.id}}" ></div>
+				<div class="serverContents" id="contents_{{server.uuid}}" ng-show="graphList.isShown(server.uuid)">
+					<div id="graph_{{server.uuid}}" ></div>
 					<div>
-						<table id="usersTable_{{server.id}}" cellpadding="0" class="display" width="100%">
+						<table id="usersTable_{{server.uuid}}" cellpadding="0" class="display" width="100%">
 							<thead>
 								<tr>
 									<th>Display Name</th>

@@ -7,7 +7,7 @@ if(!isset($_GET['serverId']))
 {
 	die("Missing serverId");
 }
-$serverId = $_GET['serverId'];
+$uuid = $_GET['serverId'];
 
 try
 {
@@ -21,7 +21,7 @@ catch(Exception $ex)
 	die();
 }
 
-$mapUrl = $db->GetServerAddress($serverId);
+$mapUrl = $db->GetServerAddress($uuid);
 
 if($mapUrl == null || $mapUrl == "")
 {

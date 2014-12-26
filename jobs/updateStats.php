@@ -58,7 +58,7 @@ foreach($servers as $server)
 		// TODO: GHETTO.
 		if(strstr($http_response_header[0], "404 Not Found"))
 		{
-			$db->SetServerStatus($server['id'], false);
+			$db->SetServerStatus($server['uuid'], false);
 			LogToFile("Server '" . $server['name'] . "' returned status 404. Disabling server");
 		}
 		else
