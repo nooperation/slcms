@@ -16,8 +16,15 @@ if(!isset($_GET['password']))
 $action = $_GET['action'];
 $password = $_GET['password'];
 
-$db = new SldnsDatabase();
-$db->ConnectToDatabase();
+try
+{
+	$db = new SldnsDatabase();
+	$db->ConnectToDatabase();
+}
+catch(Exception $ex)
+{
+	die("Failed to connect to database.");
+}
 
 switch($action)
 {
@@ -66,24 +73,53 @@ switch($action)
 	}
 }
 
-
 function RegisterDns($password)
 {
 	global $db;
 
-	$db->CreateDnsEntry($password);
+	try
+	{
+		$db->CreateDnsEntry($password);
+	}
+	catch(Exception $ex)
+	{
+		print("Failed to Register DNS: " . $ex->getMessage());
+		return;
+	}
+
+	print("OK");
 }
 
 function UpdateDns($name, $password, $newAddress)
 {
 	global $db;
 
-	$db->UpdateDns($name, $password, $newAddress);
+	try
+	{
+		$db->UpdateDns($name, $password, $newAddress);
+	}
+	catch(Exception $ex)
+	{
+		print("Failed to Register DNS: " . $ex->getMessage());
+		return;
+	}
+
+	print("OK");
 }
 
 function DeleteDns($name, $password)
 {
 	global $db;
 
-	$db->DeleteDns($name, $password);
+	try
+	{
+		$db->DeleteDns($name, $password);
+	}
+	catch(Exception $ex)
+	{
+		print("Failed to Register DNS: " . $ex->getMessage());
+		return;
+	}
+
+	print("OK");
 }
