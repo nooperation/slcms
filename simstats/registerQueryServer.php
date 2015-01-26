@@ -4,14 +4,22 @@ include_once(dirname(__FILE__) . "/lib/SimStatsDatabase.php");
 include_once(dirname(__FILE__) . "/lib/SecondlifeHeader.php");
 include_once(dirname(__FILE__) . "/lib/Utils.php");
 
-if(!isset($_GET["queryUrl"]))
+if(!isset($_POST["queryUrl"]))
 {
 	http_response_code("500");
 	LogToFile("No queryUrl sent");
 	die();
 }
 
-$queryUrl = $_GET["queryUrl"];
+if(!isset($_POST["password"]))
+{
+	http_response_code("500");
+	LogToFile("No password sent");
+	die();
+}
+
+$password = $_POST["password"];
+$queryUrl = $_POST["queryUrl"];
 
 $slHeader = new SecondlifeHeader($_SERVER);
 
@@ -31,8 +39,9 @@ try
 {
 	$shardId = $db->GetOrCreateShardId($slHeader->shard);
 	$ownerId = $db->GetOrCreateUserId($slHeader->ownerKey, $slHeader->ownerName, $shardId);
+	$dnsId = 0;
 
-	$db->CreateOrUpdateServer($slHeader->objectName, $shardId, $ownerId, $queryUrl, $slHeader->objectKey);
+	$db->CreateOrUpdateServer($slHeader->objectName, $shardId, $ownerId, $queryUrl, $slHeader->objectKey, $password);
 }
 catch(Exception $ex)
 {

@@ -71,6 +71,11 @@ switch($action)
 
 		break;
 	}
+	case 'get':
+	{
+
+		break;
+	}
 }
 
 function RegisterDns($password)

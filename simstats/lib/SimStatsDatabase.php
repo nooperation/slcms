@@ -23,21 +23,21 @@ class SimstatsDatabase
 		$this->db = $newDb;
 	}
 
-	function SetServerStatus($uuid, $isEnabled)
+	function SetServerStatus($id, $isEnabled)
 	{
-		$statement = $this->db->prepare("UPDATE servers SET
+		$statement = $this->db->prepare("UPDATE stats_server SET
 											enabled = :isEnabled
-										WHERE uuid = :uuid
+										WHERE id = :id
 										LIMIT 1");
 
-		$statement->bindParam('uuid', $uuid, PDO::PARAM_INT);
+		$statement->bindParam('id', $id, PDO::PARAM_INT);
 		$statement->bindParam('isEnabled', $isEnabled, PDO::PARAM_INT);
 		$statement->execute();
 	}
 
 	function UpdateServer($uuid, $name, $ownerId, $address, $enabled)
 	{
-		$statement = $this->db->prepare("UPDATE servers SET
+		$statement = $this->db->prepare("UPDATE stats_server SET
 											name = :name,
 											ownerId = :ownerId,
 											address = :address,
@@ -55,7 +55,7 @@ class SimstatsDatabase
 
 	function GetServerAddress($uuid)
 	{
-		$statement = $this->db->prepare("SELECT servers.address FROM servers WHERE servers.uuid = :uuid LIMIT 1");
+		$statement = $this->db->prepare("SELECT address from stats_server WHERE uuid = :uuid LIMIT 1");
 
 		$statement->execute(array(
 			'uuid' => $uuid
@@ -98,7 +98,7 @@ class SimstatsDatabase
 
 	function GetServers()
 	{
-		$statement = $this->db->prepare("SELECT * FROM servers");
+		$statement = $this->db->prepare("SELECT * from stats_server");
 		$statement->execute();
 
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -107,7 +107,7 @@ class SimstatsDatabase
 	function GetServerNameAndId($uuid)
 	{
 		$statement = $this->db->prepare("SELECT id,name
-										FROM servers
+										from stats_server
 										WHERE uuid = :uuid");
 
 		$statement->execute(array(
@@ -125,7 +125,7 @@ class SimstatsDatabase
 	function GetServerUuidFromObjectId($objectId)
 	{
 		$statement = $this->db->prepare("SELECT uuid
-										FROM servers
+										from stats_server
 										WHERE objectId = :objectId");
 
 		$statement->execute(array(
@@ -142,7 +142,7 @@ class SimstatsDatabase
 
 	function GetShards()
 	{
-		$statement = $this->db->prepare("SELECT * FROM shards");
+		$statement = $this->db->prepare("SELECT * from shard");
 		$statement->execute();
 
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -151,7 +151,7 @@ class SimstatsDatabase
 	function GetShardName($shardId)
 	{
 		$statement = $this->db->prepare("SELECT name
-										FROM shards
+										from shard
 										WHERE id = :shardId");
 
 		$statement->execute(array(
@@ -169,7 +169,7 @@ class SimstatsDatabase
 	function GetShardId($name)
 	{
 		$statement = $this->db->prepare("SELECT *
-										FROM shards
+										from shard
 										WHERE name = :name");
 
 		$statement->execute(array(
@@ -207,7 +207,7 @@ class SimstatsDatabase
 	public function GetUserId($userKey, $shardId)
 	{
 		$statement = $this->db->prepare("SELECT id
-										FROM users
+										from agent
 										WHERE uuid = :uuid
 										AND shardId = :shardId");
 
@@ -226,7 +226,7 @@ class SimstatsDatabase
 
 	public function CreateUser($userKey, $name, $shardId)
 	{
-		$statement = $this->db->prepare("INSERT INTO users (
+		$statement = $this->db->prepare("INSERT INTO agent (
 											uuid, name, shardId
 										) VALUES (
 											:uuid, :name, :shardId
@@ -310,7 +310,7 @@ class SimstatsDatabase
 		return $this->db->lastInsertId();
 	}
 
-	public function CreateOrUpdateServer($name, $shardId, $ownerId, $address, $objectId, $enabled = 1)
+	public function CreateOrUpdateServer($name, $shardId, $ownerId, $address, $objectId, $password, $enabled = 1)
 	{
 		$uuid = $this->GetServerUuidFromObjectId($objectId);
 		if($uuid == null)
@@ -325,7 +325,7 @@ class SimstatsDatabase
 
 	public function CreateServer($name, $shardId, $ownerId, $address, $objectId, $enabled = 1)
 	{
-		$statement = $this->db->prepare("INSERT INTO servers (
+		$statement = $this->db->prepare("INSERT INTO stats_server (
 											name, shardId, address, ownerId, enabled, uuid, objectId
 										) VALUES (
 											:name, :shardId, :address, :ownerId, :enabled, UUID(), :objectId
