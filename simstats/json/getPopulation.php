@@ -1,7 +1,7 @@
 <?php
 
-include_once(dirname(__FILE__) . "/../lib/SimStatsDatabase.php");
-include_once(dirname(__FILE__) . "/../lib/Utils.php");
+include_once(dirname(__FILE__) . "/../../lib/SimStatsDatabase.php");
+include_once(dirname(__FILE__) . "/../../lib/Utils.php");
 
 class DataSet
 {
@@ -63,7 +63,7 @@ catch(Exception $ex)
 
 try
 {
-	$serverNameAndId = $db->GetServerNameAndId($uuid);
+	$serverNameAndId = $db->GetStatsServerNameAndId($uuid);
 	if($serverNameAndId === null)
 	{
 		http_response_code("500");
@@ -71,7 +71,7 @@ try
 		die();
 	}
 
-	$stats = $db->GetStats($serverNameAndId['id'], $start, $end);
+	$stats = $db->GetPopulation($serverNameAndId['id'], $start, $end);
 }
 catch(Exception $ex)
 {

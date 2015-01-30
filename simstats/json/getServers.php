@@ -1,7 +1,7 @@
 <?php
 
-include_once(dirname(__FILE__) . "/../lib/SimStatsDatabase.php");
-include_once(dirname(__FILE__) . "/../lib/Utils.php");
+include_once(dirname(__FILE__) . "/../../lib/SimStatsDatabase.php");
+include_once(dirname(__FILE__) . "/../../lib/Utils.php");
 
 try
 {
@@ -15,5 +15,5 @@ catch(Exception $ex)
 	die();
 }
 
-$servers = $db->GetServersForFrontend();
+$servers = $db->GetStatsServersForFrontend();
 echo json_encode($servers);

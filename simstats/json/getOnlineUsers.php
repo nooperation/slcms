@@ -1,7 +1,7 @@
 <?php
 
-include_once(dirname(__FILE__) . "/../lib/SimStatsDatabase.php");
-include_once(dirname(__FILE__) . "/../lib/Utils.php");
+include_once(dirname(__FILE__) . "/../../lib/SimStatsDatabase.php");
+include_once(dirname(__FILE__) . "/../../lib/Utils.php");
 
 if(!isset($_GET['serverId']))
 {
@@ -21,7 +21,7 @@ catch(Exception $ex)
 	die();
 }
 
-$mapUrl = $db->GetServerAddress($uuid);
+$mapUrl = $db->GetStatsServerAddress($uuid);
 
 if($mapUrl == null || $mapUrl == "")
 {

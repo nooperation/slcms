@@ -1,8 +1,8 @@
 <?php
 
-include_once(dirname(__FILE__) . "/../lib/SimStatsDatabase.php");
-include_once(dirname(__FILE__) . "/../lib/SecondlifeHeader.php");
-include_once(dirname(__FILE__) . "/../lib/Utils.php");
+include_once(dirname(__FILE__) . "/../../lib/SimStatsDatabase.php");
+include_once(dirname(__FILE__) . "/../../lib/SecondlifeHeader.php");
+include_once(dirname(__FILE__) . "/../../lib/Utils.php");
 
 function UnpackAgentData($input)
 {
@@ -44,7 +44,7 @@ catch(Exception $ex)
 	die();
 }
 
-$servers = $db->GetServers();
+$servers = $db->GetStatsServers();
 foreach($servers as $server)
 {
 	if(!$server['enabled'])
@@ -58,7 +58,7 @@ foreach($servers as $server)
 		// TODO: GHETTO.
 		if(strstr($http_response_header[0], "404 Not Found"))
 		{
-			$db->SetServerStatus($server['uuid'], false);
+			$db->SetStatsServerStatus($server['authToken'], false);
 			LogToFile("Server '" . $server['name'] . "' returned status 404. Disabling server");
 		}
 		else
@@ -79,7 +79,7 @@ foreach($servers as $server)
 
 	foreach($agentCountHistory as $historyItem)
 	{
-		$db->CreateStats($server['id'], $historyItem['Date'], $historyItem['Count']);
+		$db->CreatePopulation($server['id'], $historyItem['Date'], $historyItem['Count']);
 
 		echo (date(DateTime::RFC1036, $historyItem["Date"]) . " Server '" . $server['name'] . "' population = " . $historyItem['Count'] . "\r\n");
 	}
