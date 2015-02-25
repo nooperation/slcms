@@ -53,7 +53,7 @@ class SimstatsDatabase
 
 	function RegenerateStatServerAuthToken($authToken)
 	{
-		$newAuthToken = $this->GenerateRandomToken();
+		$newAuthToken = GenerateRandomToken();
 
 		$statement = $this->db->prepare("UPDATE stats_server SET
 											authToken = :newAuthToken
@@ -69,7 +69,7 @@ class SimstatsDatabase
 
 	function RegenerateStatServerPublicToken($authToken)
 	{
-		$newPublicToken = $this->GenerateRandomToken();
+		$newPublicToken = GenerateRandomToken();
 
 		$statement = $this->db->prepare("UPDATE stats_server SET
 											publicToken = :newPublicToken
