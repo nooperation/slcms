@@ -1,5 +1,7 @@
 <?php
 
+// TODO: DELETE CLASS
+
 class SecondlifeHeader
 {
 	public function __construct($serverVars)
@@ -20,6 +22,11 @@ class SecondlifeHeader
 		$this->localVelocity = $serverVars["HTTP_X_SECONDLIFE_LOCAL_VELOCITY"];
 		$this->ownerName = $serverVars["HTTP_X_SECONDLIFE_OWNER_NAME"];
 		$this->ownerKey = $serverVars["HTTP_X_SECONDLIFE_OWNER_KEY"];
+
+		if($this->shard == null || $this->objectName == null || $this->objectKey == null || $this->ownerKey == null || $this->ownerName == null || $this->region === null || $this->localPosition === null)
+		{
+			$this->isSecondlifeRequest = false;
+		}
 	}
 
 	private function ExtractPosition($input)
@@ -80,15 +87,15 @@ class SecondlifeHeader
 
 	/**
 	 * The name of the region the object is in, along with the global coordinates of the region's south-west corner
-	 * @var string
-	 * @example Jin Ho (264448, 233984)
+	 * @var array
+	 * @example name => 'Jin Ho', x => 264448, y => 233984
 	 */
 	public $region;
 
 	/**
 	 * The position of the object within the region
-	 * @var string
-	 * @example (173.009827, 75.551231, 60.950001)
+	 * @var array
+	 * @example x => 173.009827, y => 75.551231, z => 60.950001
 	 */
 	public $localPosition;
 

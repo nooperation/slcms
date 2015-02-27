@@ -29,7 +29,7 @@ class BaseServerDatabase
 
 	public function RegisterServer($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ)
 	{
-		$this->RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ, 'Base Server');
+		return $this->RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ, 'Base Server');
 	}
 
 	public function RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ, $serverTypeId)
@@ -91,7 +91,7 @@ class BaseServerDatabase
 			throw new Exception("Failed to add stats server named '" . $name . "'.");
 		}
 
-		return $this->db->lastInsertId();
+		return $authToken;
 	}
 
 	function SetServerStatus($authToken, $isEnabled)
@@ -106,18 +106,26 @@ class BaseServerDatabase
 		$statement->execute();
 	}
 
-	function UpdateServer($authToken, $name, $address, $enabled)
+	function UpdateServer($authToken, $address, $name, $regionId, $positionX, $positionY, $positionZ, $enabled)
 	{
 		$statement = $this->db->prepare("UPDATE server SET
-											name = :name,
 											address = :address,
+											name = :name,
+											regionId = :regionId,
+											positionX = :positionX,
+											positionY = :positionY,
+											positionZ = :positionZ,
 											enabled = :enabled
 										WHERE authToken = :authToken
 										LIMIT 1");
 		$statement->execute(array(
 			'authToken' => $authToken,
-			'name' => $name,
 			'address' => $address,
+			'name' => $name,
+			'regionId' => $regionId,
+			'positionX' => $positionX,
+			'positionY' => $positionY,
+			'positionZ' => $positionZ,
 			'enabled' => $enabled
 		));
 	}
