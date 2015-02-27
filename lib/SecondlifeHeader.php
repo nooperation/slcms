@@ -14,12 +14,34 @@ class SecondlifeHeader
 		$this->shard = $serverVars["HTTP_X_SECONDLIFE_SHARD"];
 		$this->objectName = $serverVars["HTTP_X_SECONDLIFE_OBJECT_NAME"];
 		$this->objectKey = $serverVars["HTTP_X_SECONDLIFE_OBJECT_KEY"];
-		$this->region = $serverVars["HTTP_X_SECONDLIFE_REGION"];
-		$this->localPosition = $serverVars["HTTP_X_SECONDLIFE_LOCAL_POSITION"];
+		$this->region = $this->ExtractRegion($serverVars["HTTP_X_SECONDLIFE_REGION"]);
+		$this->localPosition = $this->ExtractPosition($serverVars["HTTP_X_SECONDLIFE_LOCAL_POSITION"]);
 		$this->localRotation = $serverVars["HTTP_X_SECONDLIFE_LOCAL_ROTATION"];
 		$this->localVelocity = $serverVars["HTTP_X_SECONDLIFE_LOCAL_VELOCITY"];
 		$this->ownerName = $serverVars["HTTP_X_SECONDLIFE_OWNER_NAME"];
 		$this->ownerKey = $serverVars["HTTP_X_SECONDLIFE_OWNER_KEY"];
+	}
+
+	private function ExtractPosition($input)
+	{
+		// (173.009827, 75.551231, 60.950001)
+		$captures = sscanf($input, "(%f, %f, %f)", $x, $y, $z);
+
+		if($captures != 3)
+			return null;
+
+		return array('x' => $x, 'y' => $y, 'z' => $z);
+	}
+
+	private function ExtractRegion($input)
+	{
+		// Jin Ho (264448, 233984)
+		$numCaptures = preg_match_all("/^([^\(]+)\((\d+),\s+(\d+)\)$/", $input, $matches);
+
+		if($numCaptures == 0)
+			return null;
+
+		return array('name' => $matches[1], 'x' => (int)$matches[2][0], 'y' => (int)$matches[3][0]);
 	}
 
 	/**

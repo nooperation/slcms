@@ -24,11 +24,11 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `simdata_master`.`agent` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `shardId` TINYINT UNSIGNED NOT NULL,
-  `authToken` BINARY(32) NULL,
-  `authTokenDate` TIMESTAMP NULL DEFAULT NULL,
-  `uuid` CHAR(36) NOT NULL,
   `name` VARCHAR(63) NOT NULL,
+  `uuid` CHAR(36) NOT NULL,
+  `shardId` TINYINT UNSIGNED NOT NULL,
+  `authToken` BINARY(32) NULL DEFAULT NULL,
+  `authTokenDate` TIMESTAMP NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_users_shards1_idx` (`shardId` ASC),
   UNIQUE INDEX `uri_UNIQUE` (`authToken` ASC),
@@ -72,12 +72,12 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `simdata_master`.`region` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `shard_id` TINYINT UNSIGNED NOT NULL,
+  `shardId` TINYINT UNSIGNED NOT NULL,
   `name` VARCHAR(63) NOT NULL,
   PRIMARY KEY (`id`),
-  INDEX `fk_Region_shard1_idx` (`shard_id` ASC),
+  INDEX `fk_Region_shard1_idx` (`shardId` ASC),
   CONSTRAINT `fk_Region_shard1`
-    FOREIGN KEY (`shard_id`)
+    FOREIGN KEY (`shardId`)
     REFERENCES `simdata_master`.`shard` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
@@ -166,7 +166,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `simdata_master`.`item` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `vendorId` INT(11) UNSIGNED NOT NULL,
-  `key` CHAR(36) NOT NULL,
+  `objectKey` CHAR(36) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `price` INT(11) NOT NULL,
   `salePrice` INT(11) NULL DEFAULT NULL,
@@ -174,8 +174,10 @@ CREATE TABLE IF NOT EXISTS `simdata_master`.`item` (
   `copy` TINYINT(1) NOT NULL DEFAULT 1,
   `modify` TINYINT(1) NOT NULL DEFAULT 1,
   `transfer` TINYINT(1) NOT NULL DEFAULT 0,
+  `created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `key_UNIQUE` (`key` ASC),
+  UNIQUE INDEX `key_UNIQUE` (`objectKey` ASC),
   INDEX `fk_item_vendor1_idx` (`vendorId` ASC),
   CONSTRAINT `fk_item_vendor1`
     FOREIGN KEY (`vendorId`)
@@ -232,3 +234,15 @@ ENGINE = InnoDB;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- -----------------------------------------------------
+-- Data for table `simdata_master`.`server_type`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `simdata_master`;
+INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Base Server');
+INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Population Server');
+INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Vendor Server');
+
+COMMIT;
+
