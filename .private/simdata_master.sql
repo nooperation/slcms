@@ -1,6 +1,12 @@
+-- MySQL Workbench Forward Engineering
+
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+
+-- -----------------------------------------------------
+-- Schema simdata_master
+-- -----------------------------------------------------
 
 -- -----------------------------------------------------
 -- Schema simdata_master
@@ -88,7 +94,7 @@ ENGINE = InnoDB;
 -- Table `simdata_master`.`server`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `simdata_master`.`server` (
-  `id` INT(11) UNSIGNED NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `serverTypeId` TINYINT UNSIGNED NOT NULL,
   `shardId` TINYINT UNSIGNED NOT NULL,
   `regionId` INT(11) UNSIGNED NOT NULL,
@@ -146,7 +152,7 @@ ENGINE = InnoDB;
 -- Table `simdata_master`.`population`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `simdata_master`.`population` (
-  `id` INT(11) UNSIGNED NOT NULL,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `serverId` INT(11) UNSIGNED NOT NULL,
   `time` INT(10) UNSIGNED NOT NULL,
   `agentCount` TINYINT NOT NULL,
@@ -240,6 +246,7 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `simdata_master`;
+INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Uninitialized');
 INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Base Server');
 INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Population Server');
 INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Vendor Server');

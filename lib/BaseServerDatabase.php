@@ -29,13 +29,14 @@ class BaseServerDatabase
 
 	public function RegisterServer($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ)
 	{
-		return $this->RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ, 'Base Server');
+		return $this->RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ, 'Uninitialized');
 	}
 
-	public function RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ, $serverTypeId)
+	public function RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ, $serverTypeName)
 	{
 		$publicToken = GenerateRandomToken();
 		$authToken = GenerateRandomToken();
+		$serverTypeId = $this->GetOrCreateServerTypeId($serverTypeName);
 
 		$statement = $this->db->prepare("INSERT INTO server (
 											serverTypeId,
@@ -94,6 +95,31 @@ class BaseServerDatabase
 		return $authToken;
 	}
 
+	function GetUninitializedServerAuthToken($objectKey)
+	{
+		$uninitializedServerId = $this->GetOrCreateServerTypeId('Uninitialized');
+
+		$statement = $this->db->prepare("SELECT authToken
+										FROM server
+										WHERE
+											serverTypeId = :uninitializedServerId AND
+											objectKey = :objectKey AND
+											userId is null
+										LIMIT 1");
+
+		$statement->execute(array(
+			'uninitializedServerId' => $uninitializedServerId,
+			'objectKey' => $objectKey,
+		));
+
+		$result = $statement->fetch(PDO::FETCH_ASSOC);
+
+		if(!isset($result['authToken']))
+			return null;
+
+		return $result['authToken'];
+	}
+
 	function SetServerStatus($authToken, $isEnabled)
 	{
 		$statement = $this->db->prepare("UPDATE server SET
@@ -128,6 +154,25 @@ class BaseServerDatabase
 			'positionZ' => $positionZ,
 			'enabled' => $enabled
 		));
+	}
+
+	function RegenerateServerTokens($authToken)
+	{
+		$newAuthToken = GenerateRandomToken();
+		$newPublicToken = GenerateRandomToken();
+
+		$statement = $this->db->prepare("UPDATE server SET
+											authToken = :newAuthToken,
+											publicToken = :newPublicToken
+										WHERE authToken = :authToken
+										LIMIT 1");
+		$statement->execute(array(
+			'authToken' => $authToken,
+			'newAuthToken' => $newAuthToken,
+			'newPublicToken' => $newPublicToken
+		));
+
+		return array('authToken' => $newAuthToken, 'publicToken' => $newPublicToken);
 	}
 
 	function RegenerateServerAuthToken($authToken)
@@ -419,6 +464,56 @@ class BaseServerDatabase
 		$statement->execute();
 
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
+	}
+
+	function GetServerTypeId($name)
+	{
+		$statement = $this->db->prepare("SELECT id
+										from server_type
+										WHERE name = :name
+										LIMIT 1");
+
+		$statement->execute(array(
+			'name' => $name
+		));
+
+		$result = $statement->fetch(PDO::FETCH_ASSOC);
+
+		if(!isset($result['id']))
+			return null;
+
+		return $result['id'];
+	}
+
+	public function CreateServerType($name)
+	{
+		$statement = $this->db->prepare("INSERT INTO server_type (
+											name
+										) VALUES (
+											:name
+										)");
+
+		$statement->execute(array(
+			'name' => $name,
+		));
+
+		if(!$statement->rowCount())
+		{
+			throw new Exception("Failed to add server type named '" . $name . "'.");
+		}
+
+		return $this->db->lastInsertId();
+	}
+
+	public function GetOrCreateServerTypeId($name)
+	{
+		$server_typeId = $this->GetServerTypeId($name);
+		if($server_typeId === null)
+		{
+			$server_typeId = $this->CreateServerType($name);
+		}
+
+		return $server_typeId;
 	}
 
 	////////////////////

@@ -12,7 +12,7 @@ class SecondlifeHeader
 		}
 
 		$this->isSecondlifeRequest = true;
-		$this->userAgent = $serverVars["HTTP_USER_AGENT"];
+		//$this->userAgent = $serverVars["HTTP_USER_AGENT"];
 		$this->shard = $serverVars["HTTP_X_SECONDLIFE_SHARD"];
 		$this->objectName = $serverVars["HTTP_X_SECONDLIFE_OBJECT_NAME"];
 		$this->objectKey = $serverVars["HTTP_X_SECONDLIFE_OBJECT_KEY"];
@@ -48,7 +48,7 @@ class SecondlifeHeader
 		if($numCaptures == 0)
 			return null;
 
-		return array('name' => $matches[1], 'x' => (int)$matches[2][0], 'y' => (int)$matches[3][0]);
+		return array('name' => $matches[1][0], 'x' => (int)$matches[2][0], 'y' => (int)$matches[3][0]);
 	}
 
 	/**
