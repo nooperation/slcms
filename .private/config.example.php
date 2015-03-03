@@ -1,5 +1,5 @@
 <?php
-
+/*
 class Config
 {
 	public static $SimStatsLogFile = "simstats.log";
@@ -9,3 +9,4 @@ class Config
 	public static $SimStatsDatabasePassword = "";
 	public static $SimStatsDatabaseName = "simdata_master";
 }
+*/

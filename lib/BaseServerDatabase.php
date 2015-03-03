@@ -1,5 +1,8 @@
 <?php
 
+// Temporary (so I can read the errors in secondlife...)
+ini_set('html_errors', 0);
+
 include_once(dirname(__FILE__) . "/../.private/config.php");
 include_once(dirname(__FILE__) . "/Utils.php");
 class BaseServerDatabase

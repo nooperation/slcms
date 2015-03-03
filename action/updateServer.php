@@ -1,8 +1,9 @@
 <?php
 // TODO: Encrypt communications
 // TODO: Don't trust slHeader...
-
+ini_set('html_errors', 0);
 include_once(dirname(__FILE__) . "/../lib/BaseServerDatabase.php");
+include_once(dirname(__FILE__) . "/../lib/SecondlifeHeader.php");
 include_once(dirname(__FILE__) . "/../lib/Utils.php");
 
 if(!isset($_POST["address"]))
@@ -55,7 +56,7 @@ catch(Exception $ex)
 	die();
 }
 
-echo "OK";
+echo "OK. Server up to date";
 
 LogToFile("Updated Base Server.");
 LogToFile("  shard = " . $slHeader->shard);
