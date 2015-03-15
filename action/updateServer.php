@@ -44,10 +44,7 @@ catch(Exception $ex)
 
 try
 {
-	$shardId = $db->GetOrCreateShardId($slHeader->shard);
-	$regionId = $db->GetOrCreateRegionId($slHeader->region['name'], $shardId);
-
-	$db->UpdateServer($authToken, $address, $slHeader->objectName, $regionId, $slHeader->localPosition['x'], $slHeader->localPosition['y'], $slHeader->localPosition['z'], true);
+	$db->UpdateServer($authToken, $address, $slHeader->objectName, $slHeader->shard, $slHeader->region, $slHeader->localPosition['x'], $slHeader->localPosition['y'], $slHeader->localPosition['z'], true);
 }
 catch(Exception $ex)
 {

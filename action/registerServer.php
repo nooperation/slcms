@@ -37,27 +37,7 @@ catch(Exception $ex)
 
 try
 {
-
-	$shardId = $db->GetOrCreateShardId($slHeader->shard);
-	$ownerId = $db->GetOrCreateUserId($slHeader->ownerKey, $slHeader->ownerName, $shardId);
-	$regionId = $db->GetOrCreateRegionId($slHeader->region['name'], $shardId);
-
-
-	$uninitializedServerAuthToken = $db->GetUninitializedServerAuthToken($slHeader->objectKey);
-	if(!$uninitializedServerAuthToken)
-	{
-		$authToken = $db->RegisterServer($shardId, $regionId, $ownerId, null, $address, $slHeader->objectKey, $slHeader->objectName, true, $slHeader->localPosition['x'], $slHeader->localPosition['y'], $slHeader->localPosition['z']);
-	}
-	else
-	{
-		$newTokens = $db->RegenerateServerTokens($uninitializedServerAuthToken);
-		if(!$newTokens)
-		{
-			Throw new Exception("Failed to recreate tokens for uninitialized server");
-		}
-
-		$authToken = $newTokens['authToken'];
-	}
+	$authToken = $db->RegisterServer($slHeader->shard, $slHeader->ownerKey, $slHeader->ownerName, $slHeader->objectKey,$slHeader->objectName, $slHeader->region['name'], $address, $slHeader->localPosition['x'], $slHeader->localPosition['y'], $slHeader->localPosition['z']);
 }
 catch(Exception $ex)
 {
@@ -65,7 +45,6 @@ catch(Exception $ex)
 	LogAndEcho("Failed to register server. See log for details.", $ex->getMessage());
 	die();
 }
-
 echo "OK. Your auth token is: " . bin2hex($authToken);
 
 LogToFile("New Base Server.");

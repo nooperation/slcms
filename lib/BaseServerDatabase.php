@@ -30,9 +30,27 @@ class BaseServerDatabase
 	// TABLE: server
 	////////////////////
 
-	public function RegisterServer($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ)
+	function RegisterServer($shardName, $ownerKey, $ownerName, $objectKey, $objectName, $regionName, $address, $positionX, $positionY, $positionZ)
 	{
-		return $this->RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ, 'Uninitialized');
+		$shardId = $this->GetOrCreateShardId($shardName);
+		$ownerId = $this->GetOrCreateUserId($ownerKey, $ownerName, $shardId);
+		$regionId = $this->GetOrCreateRegionId($regionName, $shardId);
+
+		$uninitializedServerAuthToken = $this->GetUninitializedServerAuthToken($objectKey);
+		if(!$uninitializedServerAuthToken)
+		{
+			return $this->RegisterServerEx($shardId, $regionId, $ownerId, null, $address, $objectKey, $objectName, true, $positionX, $positionY, $positionZ, 'Uninitialized');
+		}
+		else
+		{
+			$newTokens = $this->RegenerateServerTokens($uninitializedServerAuthToken);
+			if(!$newTokens)
+			{
+				Throw new Exception("Failed to recreate tokens for uninitialized server");
+			}
+
+			return $newTokens['authToken'];
+		}
 	}
 
 	public function RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ, $serverTypeName)
@@ -135,8 +153,11 @@ class BaseServerDatabase
 		$statement->execute();
 	}
 
-	function UpdateServer($authToken, $address, $name, $regionId, $positionX, $positionY, $positionZ, $enabled)
+	function UpdateServer($authToken, $address, $name, $shardName, $regionName, $positionX, $positionY, $positionZ, $enabled)
 	{
+		$shardId = $this->GetOrCreateShardId($shardName);
+		$regionId = $this->GetOrCreateRegionId($regionName, $shardId);
+
 		$statement = $this->db->prepare("UPDATE server SET
 											address = :address,
 											name = :name,
