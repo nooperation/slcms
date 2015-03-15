@@ -30,7 +30,25 @@ class BaseServerDatabase
 	// TABLE: server
 	////////////////////
 
-	function RegisterServer($shardName, $ownerKey, $ownerName, $objectKey, $objectName, $regionName, $address, $positionX, $positionY, $positionZ)
+	function RemoveServer($authToken)
+	{
+		$statement = $this->db->prepare("DELETE from server
+										WHERE authToken = :authToken
+										LIMIT 1");
+
+		$statement->execute(array(
+			'authToken' => $authToken,
+		));
+
+		if($statement->rowCount() != 1)
+		{
+			throw new Exception("Failed to delete server");
+		}
+
+		return $statement;
+	}
+
+	function RegisterServer($shardName, $ownerKey, $ownerName, $objectKey, $serverName, $regionName, $address, $positionX, $positionY, $positionZ, $enabled)
 	{
 		$shardId = $this->GetOrCreateShardId($shardName);
 		$ownerId = $this->GetOrCreateUserId($ownerKey, $ownerName, $shardId);
@@ -39,7 +57,7 @@ class BaseServerDatabase
 		$uninitializedServerAuthToken = $this->GetUninitializedServerAuthToken($objectKey);
 		if(!$uninitializedServerAuthToken)
 		{
-			return $this->RegisterServerEx($shardId, $regionId, $ownerId, null, $address, $objectKey, $objectName, true, $positionX, $positionY, $positionZ, 'Uninitialized');
+			return $this->RegisterServerEx($shardId, $regionId, $ownerId, null, $address, $objectKey, $serverName, $enabled, $positionX, $positionY, $positionZ, 'Uninitialized');
 		}
 		else
 		{
@@ -49,7 +67,7 @@ class BaseServerDatabase
 				Throw new Exception("Failed to recreate tokens for uninitialized server");
 			}
 
-			return $newTokens['authToken'];
+			return $newTokens;
 		}
 	}
 
@@ -113,7 +131,7 @@ class BaseServerDatabase
 			throw new Exception("Failed to add stats server named '" . $name . "'.");
 		}
 
-		return $authToken;
+		return array('authToken' => $authToken, 'publicToken' => $publicToken);
 	}
 
 	function GetUninitializedServerAuthToken($objectKey)
@@ -168,6 +186,7 @@ class BaseServerDatabase
 											enabled = :enabled
 										WHERE authToken = :authToken
 										LIMIT 1");
+
 		$statement->execute(array(
 			'authToken' => $authToken,
 			'address' => $address,
@@ -176,7 +195,7 @@ class BaseServerDatabase
 			'positionX' => $positionX,
 			'positionY' => $positionY,
 			'positionZ' => $positionZ,
-			'enabled' => $enabled
+			'enabled' => $enabled ? 1 : 0
 		));
 	}
 
@@ -275,6 +294,43 @@ class BaseServerDatabase
 			return null;
 
 		return $result;
+	}
+
+	function GetServer($authToken)
+	{
+		$statement = $this->db->prepare("SELECT
+											server.id,
+											server.serverTypeId as 'serverType',
+											shard.name AS 'shardName',
+											region.name as 'regionName',
+											agent.name AS 'ownerName',
+											user.name as 'userName',
+											server.address,
+											server.authToken,
+											server.publicToken,
+											server.objectKey,
+											agent.uuid AS 'ownerKey',
+											server.name AS 'serverName',
+											server.enabled,
+											server.created,
+											server.updated,
+											server.positionX,
+											server.positionY,
+											server.positionZ
+										FROM
+											server
+											LEFT JOIN shard ON shard.id = server.shardId
+											LEFT JOIN agent ON agent.id = server.ownerId
+											LEFT JOIN region on region.id = server.regionId
+											LEFT JOIN server_type on server_type.id = server.serverTypeId
+											LEFT JOIN user on user.id = server.userId
+										WHERE
+											server.authToken = :authToken");
+		$statement->execute(array(
+			'authToken' => $authToken
+		));
+
+		return $statement->fetch(PDO::FETCH_ASSOC);
 	}
 
 	////////////////////

@@ -1,2 +1,2 @@
-RedirectMatch 404 /(\.git*|\.private*|jobs/)
+RedirectMatch 404 /(\.git*|\.private*|jobs|tests/)
 
