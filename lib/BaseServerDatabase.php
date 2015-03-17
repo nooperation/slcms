@@ -215,6 +215,11 @@ class BaseServerDatabase
 			'newPublicToken' => $newPublicToken
 		));
 
+		if($statement->rowCount() == 0)
+		{
+			throw new Exception("Unable to regenerate server tokens for specified server");
+		}
+
 		return array('authToken' => $newAuthToken, 'publicToken' => $newPublicToken);
 	}
 
@@ -231,6 +236,11 @@ class BaseServerDatabase
 			'newAuthToken' => $newAuthToken
 		));
 
+		if($statement->rowCount() == 0)
+		{
+			throw new Exception("Unable to regenerate auth token for specified server");
+		}
+
 		return $newAuthToken;
 	}
 
@@ -244,8 +254,13 @@ class BaseServerDatabase
 										LIMIT 1");
 		$statement->execute(array(
 			'authToken' => $authToken,
-			'newAuthToken' => $newPublicToken
+			'newPublicToken' => $newPublicToken
 		));
+
+		if($statement->rowCount() == 0)
+		{
+			throw new Exception("Unable to regenerate public token for specified server");
+		}
 
 		return $newPublicToken;
 	}

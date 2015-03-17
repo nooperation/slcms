@@ -45,7 +45,16 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 	{
 		$this->db = new BaseServerDatabase();
 
-		$this->db->ConnectToDatabase();
+		try
+		{
+			$this->db->ConnectToDatabase();
+		}
+		catch(Exception $ex)
+		{
+			$this->db = null;
+			throw $ex;
+		}
+
 		$this->assertNotEmpty($this->db);
 
 		$this->testServer = $this->CreateServer($this->db);
@@ -56,14 +65,19 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 
 	protected function tearDown()
 	{
-		$this->db->RemoveServer($this->testServer['authToken']);
+		if($this->db)
+		{
+			$this->db->RemoveServer($this->testServer['authToken']);
+		}
 	}
 
 	public function testGetServer()
 	{
+		// Check to see if test server exists in database
 		$server = $this->db->GetServer($this->testServer['authToken']);
-
 		$this->assertNotEmpty($server);
+
+		// Verify all data matches...
 		$this->assertEquals($this->testServer['shardName'], $server['shardName']);
 		$this->assertEquals($this->testServer['ownerKey'], $server['ownerKey']);
 		$this->assertEquals($this->testServer['objectKey'], $server['objectKey']);
@@ -78,8 +92,47 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		$this->assertEquals($this->testServer['publicToken'], $server['publicToken']);
 	}
 
+	public function testRegisterServer()
+	{
+		// NOTE: Server already created and registered by test...
+
+		// Recreate server...
+		$newTestServer = $this->CreateServer($this->db);
+		$this->assertNotEmpty($newTestServer);
+
+		// Make sure auth tokens were re-created
+		$this->assertNotEquals($newTestServer['authToken'], $this->testServer['authToken']);
+		$this->assertNotEquals($newTestServer['publicToken'], $this->testServer['publicToken']);
+
+		// Make sure we can no longer fetch the test server via old auth token
+		$server = $this->db->GetServer($this->testServer['authToken']);
+		$this->assertFalse($server);
+
+		// Make sure we can fetch test server with new auth token
+		$server = $this->db->GetServer($newTestServer['authToken']);
+		$this->assertNotEmpty($server);
+
+		// Confirm the only things that have changed in the server itself are the tokens
+		$this->assertEquals($this->testServer['shardName'], $server['shardName']);
+		$this->assertEquals($this->testServer['ownerKey'], $server['ownerKey']);
+		$this->assertEquals($this->testServer['objectKey'], $server['objectKey']);
+		$this->assertEquals($this->testServer['ownerName'], $server['ownerName']);
+		$this->assertEquals($this->testServer['serverName'], $server['serverName']);
+		$this->assertEquals($this->testServer['regionName'], $server['regionName']);
+		$this->assertEquals($this->testServer['address'], $server['address']);
+		$this->assertEquals($this->testServer['positionX'], $server['positionX']);
+		$this->assertEquals($this->testServer['positionY'], $server['positionY']);
+		$this->assertEquals($this->testServer['positionZ'], $server['positionZ']);
+		$this->assertNotEquals($this->testServer['authToken'], $server['authToken']);
+		$this->assertNotEquals($this->testServer['publicToken'], $server['publicToken']);
+
+		// Fix the test server so TearDown can delete it...
+		$this->testServer = $newTestServer;
+	}
+
 	public function testUpdateServer()
 	{
+		// Update test server data
 		$newAddress = $this->testServer['address'] . " [updated address]";
 		$newRegionName = $this->testServer['regionName'] . " [updated region name]";
 		$newObjectName = $this->testServer['serverName'] . " [updated server name]";
@@ -87,14 +140,80 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		$newY = $this->testServer['positionY'] + 1;
 		$newZ = $this->testServer['positionZ'] + 1;
 		$newEnabled = !$this->testServer['enabled'];
-
 		$this->db->UpdateServer($this->testServer['authToken'], $newAddress, $newObjectName, $this->testServer['shardName'], $newRegionName, $newX, $newY, $newZ, $newEnabled);
 
+		// Verify data exists
 		$server = $this->db->GetServer($this->testServer['authToken']);
-
+		$this->assertNotFalse($server);
 		$this->assertNotEmpty($server);
 		$this->assertEquals($newAddress, $server['address']);
 		$this->assertEquals($newRegionName, $server['regionName']);
 		$this->assertEquals($newObjectName, $server['serverName']);
+	}
+
+	public function testSetServerStatus()
+	{
+		// Test enabling server
+		$this->db->SetServerStatus($this->testServer['authToken'], 1);
+		$server = $this->db->GetServer($this->testServer['authToken']);
+		$this->assertEquals($server['enabled'], 1);
+
+
+		// Test disabling server
+		$this->db->SetServerStatus($this->testServer['authToken'], 0);
+		$server = $this->db->GetServer($this->testServer['authToken']);
+		$this->assertEquals($server['enabled'], 0);
+	}
+
+	function testGetUninitializedServerAuthToken()
+	{
+		$this->assertEquals(null, $this->db->GetUninitializedServerAuthToken(null));
+		$this->assertEquals(null, $this->db->GetUninitializedServerAuthToken("1234"));
+		$this->assertEquals($this->testServer['authToken'], $this->db->GetUninitializedServerAuthToken($this->testServer['objectKey']));
+	}
+
+	function testRegenerateServerTokens()
+	{
+		$newTokens = $this->db->RegenerateServerTokens($this->testServer['authToken']);
+
+		$this->assertNotEquals($this->testServer['publicToken'], $newTokens['publicToken']);
+		$this->assertNotEquals($this->testServer['authToken'], $newTokens['authToken']);
+
+		$this->testServer['publicToken'] = $newTokens['publicToken'];
+		$this->testServer['authToken'] = $newTokens['authToken'];
+	}
+
+	function testRegenerateServerAuthToken()
+	{
+		$newAuthToken = $this->db->RegenerateServerAuthToken($this->testServer['authToken']);
+
+		$this->assertNotEquals($this->testServer['authToken'], $newAuthToken);
+
+		$this->testServer['authToken'] = $newAuthToken;
+	}
+
+	function testRegenerateServerPublicToken()
+	{
+		$newPublicToken = $this->db->RegenerateServerPublicToken($this->testServer['authToken']);
+
+		$this->assertNotEquals($this->testServer['publicToken'], $newPublicToken);
+
+		$this->testServer['publicToken'] = $newPublicToken;
+	}
+
+	function testGetServerAddress()
+	{
+		$this->assertEmpty($this->db->GetServerAddress("123"));
+		$this->assertEquals($this->testServer['address'], $this->db->GetServerAddress($this->testServer['publicToken']));
+	}
+
+	function testGetServers()
+	{
+
+	}
+
+	function testGetServerNameAndId()
+	{
+
 	}
 }
