@@ -30,6 +30,82 @@ class BaseServerDatabase
 	// TABLE: server
 	////////////////////
 
+	function DropTestServers()
+	{
+		$statement = $this->db->prepare("SELECT
+											*
+										FROM
+											server
+										WHERE
+											server.address like 'TestAddress-%'");
+		$statement->execute();
+
+		$testServers = $statement->fetchAll(PDO::FETCH_ASSOC);
+		if(!$testServers)
+			return;
+
+		foreach($testServers as $server)
+		{
+			$this->RemoveServer($server['authToken']);
+			$this->RemoveRegion($server['regionId']);
+			$this->RemoveAgent($server['ownerId']);
+			$this->RemoveShard($server['shardId']);
+			$this->RemoveUser($server['userId']);
+		}
+	}
+
+	private function RemoveUser($userId)
+	{
+		$statement = $this->db->prepare("DELETE from user
+										WHERE user.id = :userId
+										LIMIT 1");
+
+		$statement->execute(array(
+			'userId' => $userId,
+		));
+
+		return $statement->rowCount();
+	}
+
+	private function RemoveAgent($agentId)
+	{
+		$statement = $this->db->prepare("DELETE from agent
+										WHERE agent.id = :agentId
+										LIMIT 1");
+
+		$statement->execute(array(
+			'agentId' => $agentId,
+		));
+
+		return $statement->rowCount();
+	}
+
+	private function RemoveRegion($regionId)
+	{
+		$statement = $this->db->prepare("DELETE from region
+										WHERE region.id = :regionId
+										LIMIT 1");
+
+		$statement->execute(array(
+			'regionId' => $regionId,
+		));
+
+		return $statement->rowCount();
+	}
+
+	private function RemoveShard($shardId)
+	{
+		$statement = $this->db->prepare("DELETE from shard
+										WHERE shard.id = :shardId
+										LIMIT 1");
+
+		$statement->execute(array(
+			'shardId' => $shardId,
+		));
+
+		return $statement->rowCount();
+	}
+
 	function RemoveServer($authToken)
 	{
 		$statement = $this->db->prepare("DELETE from server
@@ -284,33 +360,6 @@ class BaseServerDatabase
 		return $result['address'];
 	}
 
-	function GetServers()
-	{
-		$statement = $this->db->prepare("SELECT *
-										FROM server");
-		$statement->execute();
-
-		return $statement->fetchAll(PDO::FETCH_ASSOC);
-	}
-
-	function GetServerNameAndId($publicToken)
-	{
-		$statement = $this->db->prepare("SELECT id,name
-										from server
-										WHERE publicToken = :publicToken");
-
-		$statement->execute(array(
-			'publicToken' => $publicToken
-		));
-
-		$result = $statement->fetch(PDO::FETCH_ASSOC);
-
-		if(!isset($result['id']))
-			return null;
-
-		return $result;
-	}
-
 	function GetServer($authToken)
 	{
 		$statement = $this->db->prepare("SELECT
@@ -345,7 +394,10 @@ class BaseServerDatabase
 			'authToken' => $authToken
 		));
 
-		return $statement->fetch(PDO::FETCH_ASSOC);
+		$server = $statement->fetch(PDO::FETCH_ASSOC);
+		$server['enabled'] = (bool)$server['enabled'];
+
+		return $server;
 	}
 
 	////////////////////
