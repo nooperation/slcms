@@ -42,7 +42,11 @@ class BaseServerDatabase
 
 		$testServers = $statement->fetchAll(PDO::FETCH_ASSOC);
 		if(!$testServers)
-			return;
+		{
+			return 0;
+		}
+
+		$this->db->query('set foreign_key_checks=0;');
 
 		foreach($testServers as $server)
 		{
@@ -52,6 +56,10 @@ class BaseServerDatabase
 			$this->RemoveShard($server['shardId']);
 			$this->RemoveUser($server['userId']);
 		}
+
+		$this->db->query('set foreign_key_checks=1;');
+
+		return sizeof($testServers);
 	}
 
 	private function RemoveUser($userId)
@@ -395,7 +403,10 @@ class BaseServerDatabase
 		));
 
 		$server = $statement->fetch(PDO::FETCH_ASSOC);
-		$server['enabled'] = (bool)$server['enabled'];
+		if($server)
+		{
+			$server['enabled'] = (bool)$server['enabled'];
+		}
 
 		return $server;
 	}

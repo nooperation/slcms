@@ -7,6 +7,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 -- -----------------------------------------------------
 -- Schema simdata_master
 -- -----------------------------------------------------
+DROP SCHEMA IF EXISTS `simdata_master` ;
 
 -- -----------------------------------------------------
 -- Schema simdata_master
@@ -17,8 +18,10 @@ USE `simdata_master` ;
 -- -----------------------------------------------------
 -- Table `simdata_master`.`shard`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simdata_master`.`shard` ;
+
 CREATE TABLE IF NOT EXISTS `simdata_master`.`shard` (
-  `id` TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC))
@@ -28,11 +31,13 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `simdata_master`.`agent`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simdata_master`.`agent` ;
+
 CREATE TABLE IF NOT EXISTS `simdata_master`.`agent` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(63) NOT NULL,
   `uuid` CHAR(36) NOT NULL,
-  `shardId` TINYINT UNSIGNED NOT NULL,
+  `shardId` INT(11) UNSIGNED NOT NULL,
   `authToken` BINARY(32) NULL DEFAULT NULL,
   `authTokenDate` TIMESTAMP NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -51,6 +56,8 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 -- Table `simdata_master`.`user`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simdata_master`.`user` ;
+
 CREATE TABLE IF NOT EXISTS `simdata_master`.`user` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(64) NOT NULL,
@@ -65,8 +72,10 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `simdata_master`.`server_type`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simdata_master`.`server_type` ;
+
 CREATE TABLE IF NOT EXISTS `simdata_master`.`server_type` (
-  `id` TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC))
@@ -76,9 +85,11 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `simdata_master`.`region`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simdata_master`.`region` ;
+
 CREATE TABLE IF NOT EXISTS `simdata_master`.`region` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `shardId` TINYINT UNSIGNED NOT NULL,
+  `shardId` INT(11) UNSIGNED NOT NULL,
   `name` VARCHAR(63) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_Region_shard1_idx` (`shardId` ASC),
@@ -93,10 +104,12 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `simdata_master`.`server`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simdata_master`.`server` ;
+
 CREATE TABLE IF NOT EXISTS `simdata_master`.`server` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `serverTypeId` TINYINT UNSIGNED NOT NULL,
-  `shardId` TINYINT UNSIGNED NOT NULL,
+  `serverTypeId` INT(11) UNSIGNED NOT NULL,
+  `shardId` INT(11) UNSIGNED NOT NULL,
   `regionId` INT(11) UNSIGNED NOT NULL,
   `ownerId` INT(11) UNSIGNED NOT NULL,
   `userId` INT(11) UNSIGNED NULL DEFAULT NULL,
@@ -151,6 +164,8 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `simdata_master`.`population`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simdata_master`.`population` ;
+
 CREATE TABLE IF NOT EXISTS `simdata_master`.`population` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `serverId` INT(11) UNSIGNED NOT NULL,
@@ -169,6 +184,8 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `simdata_master`.`item`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simdata_master`.`item` ;
+
 CREATE TABLE IF NOT EXISTS `simdata_master`.`item` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `vendorId` INT(11) UNSIGNED NOT NULL,
@@ -197,6 +214,8 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 -- Table `simdata_master`.`transaction`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simdata_master`.`transaction` ;
+
 CREATE TABLE IF NOT EXISTS `simdata_master`.`transaction` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `vendorId` INT(11) UNSIGNED NOT NULL,
@@ -228,6 +247,8 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 -- Table `simdata_master`.`unverified_token`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `simdata_master`.`unverified_token` ;
+
 CREATE TABLE IF NOT EXISTS `simdata_master`.`unverified_token` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `authToken` BINARY(32) NOT NULL,

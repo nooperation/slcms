@@ -66,7 +66,10 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		$this->assertNotEmpty($this->db);
 
 		$droppedServerCount = $this->db->DropTestServers();
-		echo 'Dropped: ' . $droppedServerCount . ' test server(s)\n';
+		if($droppedServerCount)
+		{
+			echo 'Dropped: ' . $droppedServerCount . " test server(s)\n";
+		}
 
 		$this->testServers = $this->CreateServers($this->db, 10);
 
@@ -84,7 +87,7 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		{
 			foreach($this->testServers as $server)
 			{
-				$this->db->RemoveServer($server['authToken']);
+			//	$this->db->RemoveServer($server['authToken']);
 			}
 		}
 	}
@@ -169,9 +172,9 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		$this->testServers[0]['address'] = $server['address'];
 		$this->testServers[0]['regionName'] = $server['regionName'];
 		$this->testServers[0]['serverName'] = $server['serverName'];
-		$this->testServers[0]['x'] = $server['x'];
-		$this->testServers[0]['y'] = $server['y'];
-		$this->testServers[0]['z'] = $server['z'];
+		$this->testServers[0]['positionX'] = $server['positionX'];
+		$this->testServers[0]['positionY'] = $server['positionY'];
+		$this->testServers[0]['positionZ'] = $server['positionZ'];
 		$this->testServers[0]['enabled'] = $server['enabled'];
 
 		// Confirm all servers have expected values in database...
