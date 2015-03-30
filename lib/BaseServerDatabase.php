@@ -32,86 +32,15 @@ class BaseServerDatabase
 
 	function DropTestServers()
 	{
-		$statement = $this->db->prepare("SELECT
-											*
-										FROM
-											server
-										WHERE
-											server.address like 'TestAddress-%'");
-		$statement->execute();
-
-		$testServers = $statement->fetchAll(PDO::FETCH_ASSOC);
-		if(!$testServers)
-		{
-			return 0;
-		}
-
 		$this->db->query('set foreign_key_checks=0;');
 
-		foreach($testServers as $server)
-		{
-			$this->RemoveServer($server['authToken']);
-			$this->RemoveRegion($server['regionId']);
-			$this->RemoveAgent($server['ownerId']);
-			$this->RemoveShard($server['shardId']);
-			$this->RemoveUser($server['userId']);
-		}
+		$this->db->query("DELETE from server where server.address like 'TestAddress-%'");
+		$this->db->query("DELETE from user WHERE user.name LIKE 'TestUser-%'");
+		$this->db->query("DELETE from agent WHERE agent.name LIKE 'TestAgent-%'");
+		$this->db->query("DELETE from region WHERE region.name LIKE 'TestRegion-%'");
+		$this->db->query("DELETE from shard WHERE shard.name LIKE 'TestShard-%'");
 
 		$this->db->query('set foreign_key_checks=1;');
-
-		return sizeof($testServers);
-	}
-
-	private function RemoveUser($userId)
-	{
-		$statement = $this->db->prepare("DELETE from user
-										WHERE user.id = :userId
-										LIMIT 1");
-
-		$statement->execute(array(
-			'userId' => $userId,
-		));
-
-		return $statement->rowCount();
-	}
-
-	private function RemoveAgent($agentId)
-	{
-		$statement = $this->db->prepare("DELETE from agent
-										WHERE agent.id = :agentId
-										LIMIT 1");
-
-		$statement->execute(array(
-			'agentId' => $agentId,
-		));
-
-		return $statement->rowCount();
-	}
-
-	private function RemoveRegion($regionId)
-	{
-		$statement = $this->db->prepare("DELETE from region
-										WHERE region.id = :regionId
-										LIMIT 1");
-
-		$statement->execute(array(
-			'regionId' => $regionId,
-		));
-
-		return $statement->rowCount();
-	}
-
-	private function RemoveShard($shardId)
-	{
-		$statement = $this->db->prepare("DELETE from shard
-										WHERE shard.id = :shardId
-										LIMIT 1");
-
-		$statement->execute(array(
-			'shardId' => $shardId,
-		));
-
-		return $statement->rowCount();
 	}
 
 	function RemoveServer($authToken)

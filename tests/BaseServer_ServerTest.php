@@ -24,10 +24,10 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		for($i = 0; $i < $count; ++$i)
 		{
 			$server = [
-				'shardName' => "Test Shard-" . $i,
+				'shardName' => "TestShard-" . $i,
 				'ownerKey' => "TestOwnerKey-" . $i,
 				'objectKey' => "TestObjectKey-" .$i,
-				'ownerName' => "Test User-" . $i,
+				'ownerName' => "TestUser-" . $i,
 				'serverName' => "TestObject-" . $i,
 				'regionName' => "TestRegion-" . $i,
 				'address' => "TestAddress-" . $i,
@@ -65,13 +65,8 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 
 		$this->assertNotEmpty($this->db);
 
-		$droppedServerCount = $this->db->DropTestServers();
-		if($droppedServerCount)
-		{
-			echo 'Dropped: ' . $droppedServerCount . " test server(s)\n";
-		}
-
-		$this->testServers = $this->CreateServers($this->db, 10);
+		$this->db->DropTestServers();
+		$this->testServers = $this->CreateServers($this->db, 5);
 
 		foreach($this->testServers as $server)
 		{
@@ -85,10 +80,7 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 	{
 		if(	$this->db)
 		{
-			foreach($this->testServers as $server)
-			{
-			//	$this->db->RemoveServer($server['authToken']);
-			}
+			$this->db->DropTestServers();
 		}
 	}
 
@@ -258,52 +250,4 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		$this->assertEmpty($this->db->GetServerAddress("123"));
 		$this->assertEquals($this->testServers[0]['address'], $this->db->GetServerAddress($this->testServers[0]['publicToken']));
 	}
-
-
-	////////////////////
-	// TABLE: shard
-	////////////////////
-
-	function testGetShards()
-	{
-
-	}
-
-	public function testCreateShard()
-	{
-		echo "Test create shard\n";
-		$shardName = "Test shard " . time();
-
-		$shardId = $this->db->CreateShard($shardName);
-		$this->assertNotNull($shardId);
-
-		return array('name' => $shardName, 'id' => $shardId);
-	}
-
-	/**
-	 * @depends testCreateShard
-	 */
-	function testGetShardName($shard)
-	{
-
-		//$this->assertEquals($shard['name'], $this->db->GetShardName($shard['name']));
-		//$this->assertNull($this->db->GetShardName("!This shard shouldn't exist!"));
-	}
-
-	/**
-	 * @depends testCreateShard
-	 */
-	function testGetShardId($shard)
-	{
-
-	}
-
-	/**
-	 * @depends testCreateShard
-	 */
-	public function testGetOrCreateShardId($shard)
-	{
-
-	}
-
 }
