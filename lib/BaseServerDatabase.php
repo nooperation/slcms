@@ -36,7 +36,8 @@ class BaseServerDatabase
 
 		$this->db->query("DELETE from server where server.address like 'TestAddress-%'");
 		$this->db->query("DELETE from user WHERE user.name LIKE 'TestUser-%'");
-		$this->db->query("DELETE from agent WHERE agent.name LIKE 'TestAgent-%'");
+		$this->db->query("DELETE from agent WHERE agent.uuid LIKE 'TestUUID-%'");
+		$this->db->query("DELETE from agent WHERE agent.uuid LIKE 'TestOwnerKey-%'");
 		$this->db->query("DELETE from region WHERE region.name LIKE 'TestRegion-%'");
 		$this->db->query("DELETE from shard WHERE shard.name LIKE 'TestShard-%'");
 
@@ -386,7 +387,7 @@ class BaseServerDatabase
 		if(!isset($result['id']))
 			return null;
 
-		return $result['id'];
+		return (int)$result['id'];
 	}
 
 	public function GetOrCreateShardId($name)
@@ -417,7 +418,7 @@ class BaseServerDatabase
 			throw new Exception("Failed to add shard named '" . $name . "'.");
 		}
 
-		return $this->db->lastInsertId();
+		return (int)$this->db->lastInsertId();
 	}
 
 	////////////////////
@@ -441,7 +442,7 @@ class BaseServerDatabase
 		if(!isset($result['id']))
 			return null;
 
-		return $result['id'];
+		return (int)$result['id'];
 	}
 
 	public function CreateUser($userKey, $name, $shardId)
@@ -463,7 +464,7 @@ class BaseServerDatabase
 			throw new Exception("Failed to add user '" . $name . "' [" . $userKey . "].");
 		}
 
-		return $this->db->lastInsertId();
+		return (int)$this->db->lastInsertId();
 	}
 
 	public function GetOrCreateUserId($userKey, $name, $shardId)
@@ -506,7 +507,7 @@ class BaseServerDatabase
 		if(!isset($result['id']))
 			return null;
 
-		return $result['id'];
+		return (int)$result['id'];
 	}
 
 	public function CreateRegion($name, $shardId)
@@ -527,7 +528,7 @@ class BaseServerDatabase
 			throw new Exception("Failed to add region named '" . $name . "'.");
 		}
 
-		return $this->db->lastInsertId();
+		return (int)$this->db->lastInsertId();
 	}
 
 	public function GetOrCreateRegionId($name, $shardId)
@@ -569,27 +570,7 @@ class BaseServerDatabase
 		if(!isset($result['id']))
 			return null;
 
-		return $result['id'];
-	}
-
-	public function CreateServerType($name)
-	{
-		$statement = $this->db->prepare("INSERT INTO server_type (
-											name
-										) VALUES (
-											:name
-										)");
-
-		$statement->execute(array(
-			'name' => $name,
-		));
-
-		if(!$statement->rowCount())
-		{
-			throw new Exception("Failed to add server type named '" . $name . "'.");
-		}
-
-		return $this->db->lastInsertId();
+		return (int)$result['id'];
 	}
 
 	public function GetOrCreateServerTypeId($name)
@@ -611,7 +592,7 @@ class BaseServerDatabase
 	{
 		$statement = $this->db->prepare("SELECT id
 										from agent
-										WHERE name = :name AND uuid = :uuid AND shardId = :shardId");
+										WHERE uuid = :uuid AND shardId = :shardId");
 
 		$statement->execute(array(
 			'uuid' => $uuid,
@@ -623,7 +604,7 @@ class BaseServerDatabase
 		if(!isset($result['id']))
 			return null;
 
-		return $result['id'];
+		return (int)$result['id'];
 	}
 
 	public function CreateAgent($name, $uuid, $shardId)
@@ -645,7 +626,7 @@ class BaseServerDatabase
 			throw new Exception("Failed to add agent named '" . $name . "'.");
 		}
 
-		return $this->db->lastInsertId();
+		return (int)$this->db->lastInsertId();
 	}
 
 	public function GetOrCreateAgentId($name, $uuid, $shardId)

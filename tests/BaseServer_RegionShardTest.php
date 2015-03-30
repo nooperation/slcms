@@ -12,6 +12,7 @@ class BaseServer_RegionShardTest extends PHPUnit_Framework_TestCase
 	protected $db;
 	protected $testShards;
 	protected $testRegions;
+	protected $testAgents;
 
 	/**
 	 * @param BaseServerDatabase $db
@@ -21,6 +22,7 @@ class BaseServer_RegionShardTest extends PHPUnit_Framework_TestCase
 	{
 		$shards = array();
 		$regions = array();
+		$agents = array();
 
 		for($i = 0; $i < $count; ++$i)
 		{
@@ -32,12 +34,29 @@ class BaseServer_RegionShardTest extends PHPUnit_Framework_TestCase
 			$regionId = $db->CreateRegion($regionName, $shardId);
 			$this->assertNotEmpty($regionId);
 
+			for($agentIndex = 0; $agentIndex < 3; ++ $agentIndex)
+			{
+				$agentName = "TestAgent-" . $agentIndex;
+				$agentUuid = "TestUUID-" . $agentIndex;
+				$agentId = $db->CreateAgent($agentName, $agentUuid, $shardId);
+				$this->assertNotEmpty($agentId);
+
+				$agents [] = array(
+					'name' => $agentName,
+					'id' => $agentId,
+					'uuid' => $agentUuid,
+					'shardId' => $shardId,
+					'authToken' => null,
+					'authTokenDate' => null
+				);
+			}
 
 			$shards []= array('name' => $shardName, 'id' => $shardId);
 			$regions []= array('name' => $regionName, 'id' => $regionId, 'shardId' => $shardId);
 		}
 
-		return array('shards' => $shards, 'regions' => $regions);
+
+		return array('shards' => $shards, 'regions' => $regions, 'agents' => $agents);
 	}
 
 	protected function setUp()
@@ -61,6 +80,7 @@ class BaseServer_RegionShardTest extends PHPUnit_Framework_TestCase
 		$regionsAndShards = $this->CreateRegionsAndShards($this->db, 5);
 		$this->testShards = $regionsAndShards['shards'];
 		$this->testRegions = $regionsAndShards['regions'];
+		$this->testAgents = $regionsAndShards['agents'];
 	}
 
 	protected function tearDown()
@@ -129,6 +149,8 @@ class BaseServer_RegionShardTest extends PHPUnit_Framework_TestCase
 		foreach($this->testRegions as $region)
 		{
 			$this->assertEquals($region['id'], $this->db->GetRegionId($region['name'], $region['shardId']));
+			$this->assertEquals(null, $this->db->GetRegionId($region['name'] . "Missing", $region['shardId']));
+			$this->assertEquals(null, $this->db->GetRegionId($region['name'], 99999999));
 		}
 	}
 
@@ -139,5 +161,37 @@ class BaseServer_RegionShardTest extends PHPUnit_Framework_TestCase
 			$regionId = $this->db->GetOrCreateRegionId($region['name'], $region['shardId']);
 			$this->assertEquals($regionId, $region['id']);
 		}
+	}
+
+	////////////////////
+	// TABLE: agent
+	////////////////////
+	function testGetAgentId()
+	{
+		foreach($this->testAgents as $agent)
+		{
+			$this->assertEquals($agent['id'], $this->db->GetAgentId($agent['uuid'], $agent['shardId']));
+			$this->assertEquals(null, $this->db->GetAgentId($agent['uuid'] . "Missing", $agent['shardId']));
+			//$this->assertEquals(null, $this->db->GetAgentId($agent['uuid'], 99999999));
+			// TODO: Test invalid shardId
+		}
+	}
+
+	public function testGetOrCreateAgentId()
+	{
+		foreach($this->testShards as $shard)
+		{
+			$testAgent = $this->testAgents[0];
+
+			// Only UUID and shardId are used when looking up agents...
+			$this->assertEquals($testAgent['id'], $this->db->GetOrCreateAgentId($testAgent['name'], $testAgent['uuid'], $testAgent['shardId']));
+			$this->assertNotEquals($testAgent['id'], $this->db->GetOrCreateAgentId($testAgent['name'], $testAgent['uuid'] . "Missing", $testAgent['shardId']));
+			//$this->assertNotEquals($testAgent['id'], $this->db->GetOrCreateAgentId($testAgent['name'], $testAgent['uuid'], 99999999));
+			// TODO: Test invalid shardId
+
+			$agentId = $this->db->GetOrCreateAgentId('TestAgent-90000', 'TestUUID-90000', $shard['id']);
+			$this->assertNotEmpty($agentId);
+		}
+
 	}
 }
