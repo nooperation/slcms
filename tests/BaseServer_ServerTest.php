@@ -92,6 +92,22 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		}
 	}
 
+	public function testGetServerTypes()
+	{
+		$serverTypes = $this->db->GetServerTypes();
+
+		foreach($this->testServers as $server)
+		{
+			if($server['serverTypeId'] === null)
+				continue;
+
+			$this->assertContains(array('id' => $server['serverTypeId'], 'name' => $server['serverTypeName']), $serverTypes);
+			$this->assertNotContains(array('id' => 999999, 'name' => $server['serverTypeName']), $serverTypes);
+			$this->assertNotContains(array('id' => $server['serverTypeId'], 'name' => $server['serverTypeName'] . 'MISSING'), $serverTypes);
+			break;
+		}
+	}
+
 	public function testGetServer()
 	{
 		foreach($this->testServers as $server)
