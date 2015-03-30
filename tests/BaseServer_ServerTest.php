@@ -250,4 +250,15 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		$this->assertEmpty($this->db->GetServerAddress("123"));
 		$this->assertEquals($this->testServers[0]['address'], $this->db->GetServerAddress($this->testServers[0]['publicToken']));
 	}
+
+	function testRemoveServer()
+	{
+		$serverToRemove = $this->testServers[0]['authToken'];
+
+		$this->assertNotEmpty($this->db->GetServer($serverToRemove));
+
+		$this->db->RemoveServer($serverToRemove);
+
+		$this->assertEmpty($this->db->GetServer($serverToRemove));
+	}
 }

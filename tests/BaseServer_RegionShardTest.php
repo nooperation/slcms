@@ -4,33 +4,40 @@ include_once(dirname(__FILE__) . "/../lib/BaseServerDatabase.php");
 include_once(dirname(__FILE__) . "/../lib/SecondlifeHeader.php");
 include_once(dirname(__FILE__) . "/../lib/Utils.php");
 
-class BaseServer_ShardTest extends PHPUnit_Framework_TestCase
+class BaseServer_RegionShardTest extends PHPUnit_Framework_TestCase
 {
 	/**
 	 * @var BaseServerDatabase
 	 */
 	protected $db;
 	protected $testShards;
+	protected $testRegions;
 
 	/**
 	 * @param BaseServerDatabase $db
 	 * @return array
 	 */
-	protected function CreateShards($db, $count)
+	protected function CreateRegionsAndShards($db, $count)
 	{
 		$shards = array();
+		$regions = array();
 
 		for($i = 0; $i < $count; ++$i)
 		{
 			$shardName = "TestShard-" . $i;
-			$shardId = $this->db->CreateShard($shardName);
-
+			$shardId = $db->CreateShard($shardName);
 			$this->assertNotEmpty($shardId);
 
+			$regionName = "TestRegion-" . $i;
+			$regionId = $db->CreateRegion($regionName, $shardId);
+			$this->assertNotEmpty($regionId);
+
+
 			$shards []= array('name' => $shardName, 'id' => $shardId);
+			$regions []= array('name' => $regionName, 'id' => $regionId, 'shardId' => $shardId);
 		}
 
-		return $shards;
+		return array('shards' => $shards, 'regions' => $regions);
 	}
 
 	protected function setUp()
@@ -50,7 +57,10 @@ class BaseServer_ShardTest extends PHPUnit_Framework_TestCase
 		$this->assertNotEmpty($this->db);
 
 		$this->db->DropTestServers();
-		$this->testShards = $this->CreateShards($this->db, 5);
+
+		$regionsAndShards = $this->CreateRegionsAndShards($this->db, 5);
+		$this->testShards = $regionsAndShards['shards'];
+		$this->testRegions = $regionsAndShards['regions'];
 	}
 
 	protected function tearDown()
@@ -60,6 +70,10 @@ class BaseServer_ShardTest extends PHPUnit_Framework_TestCase
 			$this->db->DropTestServers();
 		}
 	}
+
+	////////////////////
+	// TABLE: shard
+	////////////////////
 
 	function testGetShards()
 	{
@@ -97,4 +111,33 @@ class BaseServer_ShardTest extends PHPUnit_Framework_TestCase
 
 	}
 
+	////////////////////
+	// TABLE: region
+	////////////////////
+	function testGetRegions()
+	{
+		$unverifiedRegions = $this->db->GetRegions();
+
+		foreach($this->testRegions as $region)
+		{
+			$this->assertContains($region, $unverifiedRegions);
+		}
+	}
+
+	function testGetRegionId()
+	{
+		foreach($this->testRegions as $region)
+		{
+			$this->assertEquals($region['id'], $this->db->GetRegionId($region['name'], $region['shardId']));
+		}
+	}
+
+	public function testGetOrCreateRegionId()
+	{
+		foreach($this->testRegions as $region)
+		{
+			$regionId = $this->db->GetOrCreateRegionId($region['name'], $region['shardId']);
+			$this->assertEquals($regionId, $region['id']);
+		}
+	}
 }
