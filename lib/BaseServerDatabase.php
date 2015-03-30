@@ -12,6 +12,7 @@ class BaseServerDatabase
 	 *   Database connection. Null when not connected.
 	 */
 	protected $db = null;
+	protected $serverTypeName = 'Base Server';
 
 	function __construct()
 	{
@@ -29,6 +30,29 @@ class BaseServerDatabase
 	////////////////////
 	// TABLE: server
 	////////////////////
+
+	public function InitServer($authToken)
+	{
+		$serverTypeId = $this->GetServerTypeId($this->serverTypeName);
+		if(!$serverTypeId === null)
+		{
+			throw new Exception('Could not find server type with name: "' . $serverTypeId . '"');
+		}
+
+		$statement = $this->db->prepare("UPDATE server SET
+											serverTypeId = :serverTypeId
+										WHERE authToken = :authToken
+										AND serverTypeId is null
+										LIMIT 1");
+
+		$statement->execute(array(
+			'serverTypeId' => $serverTypeId,
+			'authToken' => $authToken
+		));
+
+		$statement->execute();
+		return $serverTypeId;
+	}
 
 	function DropTestServers()
 	{
@@ -71,7 +95,7 @@ class BaseServerDatabase
 		$uninitializedServerAuthToken = $this->GetUninitializedServerAuthToken($objectKey);
 		if(!$uninitializedServerAuthToken)
 		{
-			return $this->RegisterServerEx($shardId, $regionId, $ownerId, null, $address, $objectKey, $serverName, $enabled, $positionX, $positionY, $positionZ, 'Uninitialized');
+			return $this->RegisterServerEx($shardId, $regionId, $ownerId, null, $address, $objectKey, $serverName, $enabled, $positionX, $positionY, $positionZ);
 		}
 		else
 		{
@@ -85,14 +109,12 @@ class BaseServerDatabase
 		}
 	}
 
-	public function RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ, $serverTypeName)
+	public function RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ)
 	{
 		$publicToken = GenerateRandomToken();
 		$authToken = GenerateRandomToken();
-		$serverTypeId = $this->GetOrCreateServerTypeId($serverTypeName);
 
 		$statement = $this->db->prepare("INSERT INTO server (
-											serverTypeId,
 											shardId,
 											regionId,
 											ownerId,
@@ -107,7 +129,6 @@ class BaseServerDatabase
 											positionY,
 											positionZ
 										) VALUES (
-											:serverTypeId,
 											:shardId,
 											:regionId,
 											:ownerId,
@@ -124,7 +145,6 @@ class BaseServerDatabase
 										)");
 
 		$statement->execute(array(
-			'serverTypeId' => $serverTypeId,
 			'shardId' => $shardId,
 			'regionId' => $regionId,
 			'ownerId' => $ownerId,
@@ -150,18 +170,15 @@ class BaseServerDatabase
 
 	function GetUninitializedServerAuthToken($objectKey)
 	{
-		$uninitializedServerId = $this->GetOrCreateServerTypeId('Uninitialized');
-
 		$statement = $this->db->prepare("SELECT authToken
 										FROM server
 										WHERE
-											serverTypeId = :uninitializedServerId AND
+											serverTypeId is null AND
 											objectKey = :objectKey AND
 											userId is null
 										LIMIT 1");
 
 		$statement->execute(array(
-			'uninitializedServerId' => $uninitializedServerId,
 			'objectKey' => $objectKey,
 		));
 
@@ -302,7 +319,8 @@ class BaseServerDatabase
 	{
 		$statement = $this->db->prepare("SELECT
 											server.id,
-											server.serverTypeId as 'serverType',
+											server.serverTypeId,
+											server_type.name as 'serverTypeName',
 											shard.name AS 'shardName',
 											region.name as 'regionName',
 											agent.name AS 'ownerName',
@@ -552,6 +570,11 @@ class BaseServerDatabase
 		$statement->execute();
 
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
+	}
+
+	function GetThisServerTypeName()
+	{
+		return $this->serverTypeName;
 	}
 
 	function GetServerTypeId($name)

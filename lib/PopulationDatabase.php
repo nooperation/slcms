@@ -3,10 +3,7 @@ include_once(dirname(__FILE__) . "/BaseServerDatabase.php");
 
 class PopulationServerDatabase extends BaseServerDatabase
 {
-	public function RegisterServer($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ)
-	{
-		$this->RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ, 'Population Server');
-	}
+	protected $serverTypeName = 'Population Server';
 
 	public function GetPopulationServersForFrontend($serverTypeId)
 	{

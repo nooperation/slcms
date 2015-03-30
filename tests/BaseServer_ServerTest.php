@@ -36,12 +36,20 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 				'positionZ' => 1 + $i * $i,
 				'authToken' => null,
 				'publicToken' => null,
-				'enabled' => true
+				'enabled' => true,
+				'serverTypeId' => null,
+				'serverTypeName' => null
 			];
 
 			$tokens = $db->RegisterServer($server['shardName'], $server['ownerKey'], $server['ownerName'], $server['objectKey'], $server['serverName'], $server['regionName'], $server['address'], $server['positionX'], $server['positionY'], $server['positionZ'], $server['enabled']);
 			$server['authToken'] = $tokens['authToken'];
 			$server['publicToken'] = $tokens['publicToken'];
+
+			if($i & 1)
+			{
+				$server['serverTypeId'] = $db->InitServer($server['authToken']);
+				$server['serverTypeName'] = $db->GetThisServerTypeName();
+			}
 
 			$servers []= $server;
 		}
@@ -105,6 +113,8 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 			$this->assertEquals($server['positionZ'], $serverFromDatabase['positionZ']);
 			$this->assertEquals($server['authToken'], $serverFromDatabase['authToken']);
 			$this->assertEquals($server['publicToken'], $serverFromDatabase['publicToken']);
+			$this->assertEquals($server['serverTypeId'], $serverFromDatabase['serverTypeId']);
+			$this->assertEquals($server['serverTypeName'], $serverFromDatabase['serverTypeName']);
 		}
 	}
 
@@ -201,6 +211,9 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 
 		foreach($this->testServers as $server)
 		{
+			if($server['serverTypeId'] !== null)
+				continue;
+
 			$this->assertEquals($server['authToken'], $this->db->GetUninitializedServerAuthToken($server['objectKey']));
 		}
 

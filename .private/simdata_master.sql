@@ -108,7 +108,7 @@ DROP TABLE IF EXISTS `simdata_master`.`server` ;
 
 CREATE TABLE IF NOT EXISTS `simdata_master`.`server` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `serverTypeId` INT(11) UNSIGNED NOT NULL,
+  `serverTypeId` INT(11) UNSIGNED NULL DEFAULT NULL,
   `shardId` INT(11) UNSIGNED NOT NULL,
   `regionId` INT(11) UNSIGNED NOT NULL,
   `ownerId` INT(11) UNSIGNED NOT NULL,
