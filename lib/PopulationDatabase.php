@@ -5,7 +5,7 @@ class PopulationServerDatabase extends BaseServerDatabase
 {
 	protected $serverTypeName = 'Population Server';
 
-	public function GetPopulationServersForFrontend($serverTypeId)
+	public function GetPopulationServersForFrontend()
 	{
 		$statement = $this->db->prepare("SELECT
 											server.publicToken,
@@ -13,7 +13,6 @@ class PopulationServerDatabase extends BaseServerDatabase
 											shard.name AS 'shardName',
 											agent.name AS 'userName',
 											region.name as 'regionName',
-											server.serverTypeId as 'serverType',
 											server.enabled,
 											(SELECT
 													agentCount
@@ -30,15 +29,22 @@ class PopulationServerDatabase extends BaseServerDatabase
 											LEFT JOIN region on region.id = server.regionId
 											LEFT JOIN server_type on server_type.id = server.serverTypeId
 										WHERE
-											enabled = TRUE AND serverTypeId = :serverTypeId");
+											enabled = TRUE AND server_type.name = :serverTypeName");
 		$statement->execute(array(
-			'serverTypeId' => $serverTypeId
+			'serverTypeName' => $this->serverTypeName,
 		));
 
-		return $statement->fetchAll(PDO::FETCH_ASSOC);
+		$results = $statement->fetchAll(PDO::FETCH_ASSOC);
+		for($i = 0; $i < sizeof($results); ++$i)
+		{
+			$results[$i]['enabled'] = (bool)$results[$i]['enabled'];
+			$results[$i]['currentPopulation'] = (int)$results[$i]['currentPopulation'];
+		}
+
+		return $results;
 	}
 
-	public function GetPopulation($serverId, $min, $max)
+	public function GetPopulation($publicToken, $min, $max)
 	{
 		if($min === null)
 			$min = 0;
@@ -47,34 +53,43 @@ class PopulationServerDatabase extends BaseServerDatabase
 
 		$statement = $this->db->prepare("SELECT agentCount, time
 										FROM   population
-										WHERE  serverId = :serverId and time >= :min and time <= :max
+										LEFT JOIN server on server.id = population.serverId
+										WHERE time >= :min and time <= :max and publicToken = :publicToken
 										ORDER BY time ASC");
 
-		$statement->bindParam('serverId', $serverId, PDO::PARAM_INT);
+		$statement->bindParam('publicToken', $publicToken, PDO::PARAM_LOB);
 		$statement->bindParam('min', $min, PDO::PARAM_INT);
 		$statement->bindParam('max', $max, PDO::PARAM_INT);
 		$statement->execute();
 
-		return $statement->fetchAll(PDO::FETCH_ASSOC);
+		$populations = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+		for($i = 0; $i < sizeof($populations); ++$i)
+		{
+			$populations[$i]['time'] = (int)$populations[$i]['time'];
+			$populations[$i]['agentCount'] = (int)$populations[$i]['agentCount'];
+		}
+
+		return $populations;
 	}
 
-	public function CreatePopulation($serverId, $time, $agentCount)
+	public function CreatePopulation($publicToken, $time, $agentCount)
 	{
 		$statement = $this->db->prepare("INSERT INTO population (
 											serverId, agentCount, time
 										) VALUES (
-											:serverId, :agentCount, :time
+											(select id from server where server.publicToken = :publicToken limit 1), :agentCount, :time
 										)");
 
 		$statement->execute(array(
-			'serverId' => $serverId,
+			'publicToken' => $publicToken,
 			'agentCount' => $agentCount,
 			'time' => $time
 		));
 
 		if(!$statement->rowCount())
 		{
-			throw new Exception("Failed to add sim stats for server '" . $serverId . "'.");
+			throw new Exception("Failed to add sim stats for server.");
 		}
 
 		return $this->db->lastInsertId();

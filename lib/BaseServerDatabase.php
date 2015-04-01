@@ -50,6 +50,11 @@ class BaseServerDatabase
 			'authToken' => $authToken
 		));
 
+		if($statement->rowCount() == 0)
+		{
+			throw Exception("Failed to InitServer: rowcount = 0");
+		}
+
 		$statement->execute();
 		return $serverTypeId;
 	}
@@ -58,6 +63,7 @@ class BaseServerDatabase
 	{
 		$this->db->query('set foreign_key_checks=0;');
 
+		$this->db->query("DELETE from population WHERE population.serverId in (select serverId from server where server.address like 'TestAddress-%')");
 		$this->db->query("DELETE from server where server.address like 'TestAddress-%'");
 		$this->db->query("DELETE from user WHERE user.name LIKE 'TestUser-%'");
 		$this->db->query("DELETE from agent WHERE agent.uuid LIKE 'TestUUID-%'");
@@ -569,7 +575,14 @@ class BaseServerDatabase
  										FROM server_type");
 		$statement->execute();
 
-		return $statement->fetchAll(PDO::FETCH_ASSOC);
+		$serverTypes =  $statement->fetchAll(PDO::FETCH_ASSOC);
+
+		for($i = 0; $i < sizeof($serverTypes); ++$i)
+		{
+			$serverTypes[$i]['id'] = (int)$serverTypes[$i]['id'];
+		}
+
+		return $serverTypes;
 	}
 
 	function GetThisServerTypeName()

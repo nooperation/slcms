@@ -8,7 +8,7 @@ include_once(dirname(__FILE__) . "/../lib/Utils.php");
 class PopulationServer_Test extends PHPUnit_Framework_TestCase
 {
 	/**
-	 * @var BaseServerDatabase
+	 * @var PopulationServerDatabase
 	 */
 	protected $db;
 	protected $testServers;
@@ -45,6 +45,8 @@ class PopulationServer_Test extends PHPUnit_Framework_TestCase
 			$server['authToken'] = $tokens['authToken'];
 			$server['publicToken'] = $tokens['publicToken'];
 
+			$db->InitServer($tokens['authToken']);
+
 			$servers []= $server;
 		}
 
@@ -68,7 +70,7 @@ class PopulationServer_Test extends PHPUnit_Framework_TestCase
 		$this->assertNotEmpty($this->db);
 
 		$this->db->DropTestServers();
-		$this->testServers = $this->CreateServers($this->db, 1);
+		$this->testServers = $this->CreateServers($this->db, 5);
 
 		foreach($this->testServers as $server)
 		{
@@ -86,18 +88,72 @@ class PopulationServer_Test extends PHPUnit_Framework_TestCase
 		}
 	}
 
+	/*
+	 * @depends testCreatePopulation
+	 */
 	public function testGetPopulationServersForFrontend()
 	{
+		$this->testCreatePopulation();
 
+		$populationData = $this->db->GetPopulationServersForFrontend();
+
+		$this->assertSameSize($this->testServers, $populationData);
+
+		for($i = 0; $i < sizeof($this->testServers); ++$i)
+		{
+			$testPopulationData = array('publicToken' => $this->testServers[$i]['publicToken'],
+				'serverName' => $this->testServers[$i]['serverName'],
+				'shardName' => $this->testServers[$i]['shardName'],
+				'userName' => $this->testServers[$i]['ownerName'],
+				'regionName' => $this->testServers[$i]['regionName'],
+				'enabled' => $this->testServers[$i]['enabled'],
+				'currentPopulation' => $i & 1 ? $i : null);
+
+			$this->assertContains($testPopulationData, $populationData);
+		}
 	}
 
+	/*
+	 * @depends testCreatePopulation
+	 */
 	public function testGetPopulation()
 	{
+		$this->testCreatePopulation();
 
+		for($i = 0; $i < sizeof($this->testServers); ++$i)
+		{
+			$populations = $this->db->GetPopulation($this->testServers[$i]['publicToken'], null, null);
+
+			// TODO: Test time range...
+
+			if($i & 1)
+			{
+				$this->assertEquals($i, sizeof($populations));
+				for($populationIter = 0; $populationIter < sizeof($populations); ++$populationIter)
+				{
+					$this->assertEquals($i, $populations[$populationIter]['agentCount']);
+					$this->assertEquals(1000+$i, $populations[$populationIter]['time']);
+				}
+			}
+			else
+			{
+				$this->assertEquals(0, sizeof($populations));
+			}
+		}
 	}
 
 	public function testCreatePopulation()
 	{
+		for($i = 0; $i < sizeof($this->testServers); ++$i)
+		{
+			if($i & 1)
+			{
+				for($populationIter = 0; $populationIter < $i; ++$populationIter)
+				{
+					$this->db->CreatePopulation($this->testServers[$i]['publicToken'], 1000 + $i, $i);
+				}
+			}
+		}
 
 	}
 }
