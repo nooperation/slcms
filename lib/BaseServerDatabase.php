@@ -31,6 +31,27 @@ class BaseServerDatabase
 	// TABLE: server
 	////////////////////
 
+	public function GetServersOfThisType()
+	{
+		$serverTypeId = $this->GetServerTypeId($this->serverTypeName);
+		if(!$serverTypeId === null)
+		{
+			throw new Exception('Could not find server type with name: "' . $serverTypeId . '"');
+		}
+
+		$statement = $this->db->prepare("SELECT *
+										FROM server
+										WHERE serverTypeId = :serverTypeId");
+
+		$statement->execute(array(
+			'serverTypeId' => $serverTypeId,
+		));
+
+		$result = $statement->fetch(PDO::FETCH_ASSOC);
+
+		return $result;
+	}
+
 	public function InitServer($authToken)
 	{
 		$serverTypeId = $this->GetServerTypeId($this->serverTypeName);
@@ -52,10 +73,9 @@ class BaseServerDatabase
 
 		if($statement->rowCount() == 0)
 		{
-			throw Exception("Failed to InitServer: rowcount = 0");
+			throw new Exception("Failed to InitServer: rowcount = 0");
 		}
 
-		$statement->execute();
 		return $serverTypeId;
 	}
 

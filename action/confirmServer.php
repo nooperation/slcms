@@ -3,6 +3,7 @@
 // TODO: Don't trust slHeader...
 
 include_once(dirname(__FILE__) . "/../lib/BaseServerDatabase.php");
+include_once(dirname(__FILE__) . "/../lib/PopulationDatabase.php");
 include_once(dirname(__FILE__) . "/../lib/SecondlifeHeader.php");
 include_once(dirname(__FILE__) . "/../lib/Utils.php");
 
@@ -12,7 +13,7 @@ if(!isset($_POST["authToken"]))
 	LogAndEcho("Missing authToken");
 	die();
 }
-$authToken = $_POST["authToken"];
+$authToken = hex2bin($_POST["authToken"]);
 
 
 if(!isset($_POST["serverType"]))
@@ -33,9 +34,26 @@ if(!$slHeader->isSecondlifeRequest)
 	die();
 }
 
+$db = null;
+
+switch($serverType)
+{
+	case "Population Server":
+		$db = new PopulationServerDatabase();
+		break;
+	case "Vendor Server":
+		LogAndEcho("Vendor server not yet supported");
+		die();
+	case "Base Server":
+		$db = new BaseServerDatabase();
+		break;
+	default:
+		LogAndEcho("Invalid server type: " . $serverType);
+		die();
+}
+
 try
 {
-	$db = new BaseServerDatabase();
 	$db->ConnectToDatabase();
 }
 catch(Exception $ex)
@@ -58,6 +76,7 @@ catch(Exception $ex)
 echo "OK.";
 
 LogToFile("Confirmed server.");
+LogToFile("  type = " . $serverType);
 LogToFile("  shard = " . $slHeader->shard);
 LogToFile("  region = " . $slHeader->region['name']);
 LogToFile("  name  = " . $slHeader->objectName);

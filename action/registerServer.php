@@ -37,7 +37,7 @@ catch(Exception $ex)
 
 try
 {
-	$authToken = $db->RegisterServer($slHeader->shard, $slHeader->ownerKey, $slHeader->ownerName, $slHeader->objectKey,$slHeader->objectName, $slHeader->region['name'], $address, $slHeader->localPosition['x'], $slHeader->localPosition['y'], $slHeader->localPosition['z']);
+	$authToken = $db->RegisterServer($slHeader->shard, $slHeader->ownerKey, $slHeader->ownerName, $slHeader->objectKey,$slHeader->objectName, $slHeader->region['name'], $address, $slHeader->localPosition['x'], $slHeader->localPosition['y'], $slHeader->localPosition['z'], true);
 }
 catch(Exception $ex)
 {
@@ -45,7 +45,7 @@ catch(Exception $ex)
 	LogAndEcho("Failed to register server. See log for details.", $ex->getMessage());
 	die();
 }
-echo "OK. Your auth token is: " . bin2hex($authToken);
+echo "OK." . bin2hex($authToken['authToken']);
 
 LogToFile("New Base Server.");
 LogToFile("  shard = " . $slHeader->shard);

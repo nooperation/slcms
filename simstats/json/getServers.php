@@ -1,11 +1,11 @@
 <?php
 
-include_once(dirname(__FILE__) . "/../../lib/SimStatsDatabase.php");
+include_once(dirname(__FILE__) . "/../../lib/PopulationDatabase.php");
 include_once(dirname(__FILE__) . "/../../lib/Utils.php");
 
 try
 {
-	$db = new SimStatsDatabase();
+	$db = new PopulationServerDatabase();
 	$db->ConnectToDatabase();
 }
 catch(Exception $ex)
@@ -15,5 +15,5 @@ catch(Exception $ex)
 	die();
 }
 
-$servers = $db->GetStatsServersForFrontend();
+$servers = $db->GetPopulationServersForFrontend();
 echo json_encode($servers);

@@ -20,7 +20,7 @@ if(!isset($_POST["authToken"]))
 }
 
 $address = $_POST["address"];
-$authToken = $_POST["authToken"];
+$authToken = hex2bin($_POST["authToken"]);
 
 $slHeader = new SecondlifeHeader($_SERVER);
 if(!$slHeader->isSecondlifeRequest)

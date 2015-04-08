@@ -2,7 +2,7 @@
 /*
 class Config
 {
-	public static $SimStatsLogFile = "simstats.log";
+	public static $SimStatsLogFile = "simstats_dev.log";
 
 	public static $SimStatsDatabaseHost = "localhost";
 	public static $SimStatsDatabaseUser = "root";

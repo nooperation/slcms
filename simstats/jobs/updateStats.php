@@ -1,6 +1,6 @@
 <?php
 
-include_once(dirname(__FILE__) . "/../../lib/SimStatsDatabase.php");
+include_once(dirname(__FILE__) . "/../../lib/PopulationDatabase.php");
 include_once(dirname(__FILE__) . "/../../lib/SecondlifeHeader.php");
 include_once(dirname(__FILE__) . "/../../lib/Utils.php");
 
@@ -34,7 +34,7 @@ function UnpackAgentData($input)
 
 try
 {
-	$db = new SimStatsDatabase();
+	$db = new PopulationServerDatabase();
 	$db->ConnectToDatabase();
 }
 catch(Exception $ex)
@@ -44,7 +44,7 @@ catch(Exception $ex)
 	die();
 }
 
-$servers = $db->GetStatsServers();
+$servers = $db->GetServersOfThisType();
 foreach($servers as $server)
 {
 	if(!$server['enabled'])
@@ -55,11 +55,11 @@ foreach($servers as $server)
 	$serverResponse = @file_get_contents($server['address'] . "/population");
 	if($serverResponse === false)
 	{
-		// TODO: GHETTO.
+		//// TODO: Something else.
 		if(strstr($http_response_header[0], "404 Not Found"))
 		{
-			$db->SetStatsServerStatus($server['authToken'], false);
-			LogToFile("Server '" . $server['name'] . "' returned status 404. Disabling server");
+			//$db->SetServerStatus($server['authToken'], false);
+			LogToFile("Server '" . $server['name'] . "' returned status 404.");
 		}
 		else
 		{

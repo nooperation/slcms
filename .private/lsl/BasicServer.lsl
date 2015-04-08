@@ -1,6 +1,8 @@
 // Server data
-string URL_REGISTER = "http://localhost:1942/simstats/action/registerServer.php";
-string URL_UPDATE = "http://localhost:1942/simstats/action/updateServer.php";
+string URL_REGISTER = "http://localhost:19420/simstats/action/registerServer.php";
+string URL_UPDATE = "http://localhost:19420/simstats/action/updateServer.php";
+string URL_CONFIRM = "http://localhost:19420/simstats/action/confirmServer.php";
+string serverType = "Population Server";
 key registerRequestId;
 key urlRequestId; 
 key listenKey;
@@ -10,20 +12,20 @@ string CONFIG_PATH = "Config";
 integer currentConfigLine = 0;
 key configQueryId = NULL_KEY;
 string authToken = "";
+key confirmRequestId = NULL_KEY;
 
 
-
-integer ProcessRequest(list pathParts)
+integer ProcessRequest(list pathParts, key requestId)
 {
-	string firstPathPart = llList2String(requestedPathParts, 0);
-	
-	if(firstPathPart == "test")
-	{
-		llHTTPResponse(requestId, 200, "Hi!");
-		return TRUE;
-	}
-	
-	return FALSE;
+    string firstPathPart = llList2String(pathParts, 0);
+    
+    if(firstPathPart == "test")
+    {
+        llHTTPResponse(requestId, 200, "Hi!");
+        return TRUE;
+    }
+    
+    return FALSE;
 }
 
 /// <summary>
@@ -113,8 +115,8 @@ default
 {
     state_entry()
     {
-		Output("Fresh state");
-		
+        Output("Fresh state");
+        
         if(llGetInventoryType(CONFIG_PATH) != INVENTORY_NONE)
         {
             if(llGetInventoryKey(CONFIG_PATH) != NULL_KEY)
@@ -164,6 +166,7 @@ state StartServer
 {
     state_entry()
     {
+        llSetColor(<1, 0, 0>, ALL_SIDES);
         Output("Server starting...");
         urlRequestId = llRequestURL();
     }
@@ -205,8 +208,9 @@ state StartServer
             if(status == 200 && llGetSubString(body, 0, 2) == "OK.")
             {
                 Output("Registered!");
-                Output(llGetSubString(body, 4, -1));
-                state ServerRunning;
+                authToken = llGetSubString(body, 3, -1);
+                Output("Your auth token is: " + authToken);
+                state ServerUnregistered;
             }
             else
             {
@@ -230,13 +234,51 @@ state StartServer
     }
 }
 
+
+
+state ServerUnregistered
+{
+    state_entry()
+    {
+        llSetColor(<1, 1, 0>, ALL_SIDES);
+        Output("Click to begin registration...");   
+    }
+    
+    touch(integer num_detected)
+    {
+        confirmRequestId = llHTTPRequest(URL_CONFIRM, [HTTP_METHOD, "POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"], "serverType=" + llEscapeURL(serverType) + "&authToken=" + authToken);
+    }
+    
+    http_response(key requestId, integer status, list metadata, string body)
+    {
+        if (requestId == confirmRequestId)
+        {
+            if(status == 200 && llGetSubString(body, 0, 2) == "OK.")
+            {
+                Output("Server confirmed!");
+                state ServerRunning;
+            }
+            else
+            {
+                Output("Failed to confirm server: " + body);
+                return;
+            }
+        } 
+        else
+        {
+            Output("Unknown request");
+        }
+    }
+}
+
 state ServerRunning
 {
     state_entry()
     {
+        llSetColor(<0, 1, 0>, ALL_SIDES);
         Output("Server running...");
     }
-	
+    
     http_request(key requestId, string method, string body)
     {
         string requestedPathRaw = ExtractValueFromQuery(llGetHTTPHeader(requestId, "x-query-string"), "path");
@@ -249,10 +291,10 @@ state ServerRunning
             return;
         }
         
-		if(!ProcessRequest(requestedPathParts))
-		{
-			llHTTPResponse(requestId, 501, "Not Implemented");
-		}
+        if(!ProcessRequest(requestedPathParts, requestId))
+        {
+            llHTTPResponse(requestId, 501, "Not Implemented");
+        }
     }
     
     changed(integer change)

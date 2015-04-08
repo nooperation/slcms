@@ -1,17 +1,17 @@
 <?php
 
-include_once(dirname(__FILE__) . "/../../lib/SimStatsDatabase.php");
+include_once(dirname(__FILE__) . "/../../lib/BaseServerDatabase.php");
 include_once(dirname(__FILE__) . "/../../lib/Utils.php");
 
-if(!isset($_GET['serverId']))
+if(!isset($_GET['publicToken']))
 {
-	die("Missing serverId");
+	die("Missing publicToken");
 }
-$uuid = $_GET['serverId'];
+$publicToken = $_GET['publicToken'];
 
 try
 {
-	$db = new SimStatsDatabase();
+	$db = new BaseServerDatabase();
 	$db->ConnectToDatabase();
 }
 catch(Exception $ex)
@@ -21,7 +21,7 @@ catch(Exception $ex)
 	die();
 }
 
-$mapUrl = $db->GetStatsServerAddress($uuid);
+$mapUrl = $db->GetServerAddress($publicToken);
 
 if($mapUrl == null || $mapUrl == "")
 {

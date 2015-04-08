@@ -1,6 +1,6 @@
 <?php
 
-include_once(dirname(__FILE__) . "/../../lib/SimStatsDatabase.php");
+include_once(dirname(__FILE__) . "/../../lib/PopulationDatabase.php");
 include_once(dirname(__FILE__) . "/../../lib/Utils.php");
 
 class DataSet
@@ -27,11 +27,11 @@ class DataSetData
 	}
 }
 
-if(!isset($_GET['serverId']))
+if(!isset($_GET['publicToken']))
 {
-	die("Missing serverId");
+	die("Missing publicToken");
 }
-$uuid = $_GET['serverId'];
+$publicToken = $_GET['publicToken'];
 $format = null;
 
 $start = null;
@@ -51,7 +51,7 @@ if(isset($_GET['format']))
 
 try
 {
-	$db = new SimStatsDatabase();
+	$db = new PopulationServerDatabase();
 	$db->ConnectToDatabase();
 }
 catch(Exception $ex)
@@ -63,15 +63,7 @@ catch(Exception $ex)
 
 try
 {
-	$serverNameAndId = $db->GetStatsServerNameAndId($uuid);
-	if($serverNameAndId === null)
-	{
-		http_response_code("500");
-		LogAndEchoJson("Server not found.");
-		die();
-	}
-
-	$stats = $db->GetPopulation($serverNameAndId['id'], $start, $end);
+	$stats = $db->GetPopulation($publicToken, $start, $end);
 }
 catch(Exception $ex)
 {
@@ -80,10 +72,9 @@ catch(Exception $ex)
 	die();
 }
 
-
 if($format == "google")
 {
-	$googleData = new DataSet($serverNameAndId['name']);
+	$googleData = new DataSet("ServerNameHere");
 	if(sizeof($stats) > 0)
 	{
 		for($i = 0; $i < sizeof($stats); ++$i)
