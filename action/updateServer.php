@@ -51,7 +51,7 @@ catch(Exception $ex)
 
 try
 {
-	$rowsAffected = $db->UpdateServer($authToken, $address, $slHeader->objectName, $slHeader->shard, $slHeader->region['name'], $slHeader->localPosition['x'], $slHeader->localPosition['y'], $slHeader->localPosition['z'], true);
+	$rowsAffected = $db->UpdateServer($authToken, $slHeader->objectKey, $address, $slHeader->objectName, $slHeader->shard, $slHeader->region['name'], $slHeader->localPosition['x'], $slHeader->localPosition['y'], $slHeader->localPosition['z'], true);
 }
 catch(Exception $ex)
 {

@@ -15,11 +15,19 @@ key configQueryId = NULL_KEY;
 string authToken = "";
 key confirmRequestId = NULL_KEY;
 
+
+integer CHANNEL_INIT_SERVERTYPE = -43285723;
+string SERVER_TYPE_POPULATION = "Population Server";
+string SERVER_TYPE_BASE = "Base Server";
+list ServerTypes = [SERVER_TYPE_POPULATION, SERVER_TYPE_BASE];
+string selectedServerType = "";
+string expectedAuthToken = "";
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ++++++  HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
 //                               FOR LOCAL OpenSim TESTING ONLY
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-string JSON_OBJECT = "﷑";
+/*string JSON_OBJECT = "﷑";
 string llList2Json( string type, list values )
 {
     string buff = "{";
@@ -41,7 +49,7 @@ string llList2Json( string type, list values )
     buff += "}";
     
     return buff;
-}
+}*/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ----- HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,7 +158,6 @@ processTriggerLine(string line)
     if(name == "authtoken")
     {
         authToken = value;
-        Output("AuthToken = " + authToken);
     }
 }
 
@@ -159,24 +166,15 @@ processTriggerLine(string line)
 /// </summary>
 /// <param name="line">Line from actions notecard</param>
 processConfigLine(string line)
-{    
-    if(line == EOF)
-    {
-        state default;
-        return;
-    }
-    
+{      
     line = llStringTrim(line, STRING_TRIM_HEAD);
     
     if(line == "" || llGetSubString(line, 0, 0) == "#")
     {
-        configQueryId = llGetNotecardLine(CONFIG_PATH, ++currentConfigLine);
         return;
     }
     
     processTriggerLine(line);
-
-    configQueryId = llGetNotecardLine(CONFIG_PATH, ++currentConfigLine); 
 }
 
 default
@@ -190,6 +188,7 @@ default
             if(llGetInventoryKey(CONFIG_PATH) != NULL_KEY)
             {
                 Output("Reading config...");
+                currentConfigLine = 0;
                 configQueryId = llGetNotecardLine(CONFIG_PATH, currentConfigLine);
                 return;
             }
@@ -201,23 +200,24 @@ default
         
         state StartServer;
     }
-    
-    on_rez(integer start_param)
-    {
-        llResetScript();    
-    }
 
     dataserver(key queryId, string data)
     {
         if(queryId == configQueryId)
         {
-            processConfigLine(data);
-            
             if(data == EOF)
             {
                 state StartServer;
             }
+            
+            processConfigLine(data);
+            configQueryId = llGetNotecardLine(CONFIG_PATH, ++currentConfigLine); 
         }
+    }
+    
+    on_rez(integer start_param)
+    {
+        llResetScript();    
     }
     
     changed(integer change)
@@ -277,8 +277,8 @@ state StartServer
             {
                 Output("Registered!");
                 authToken = llGetSubString(body, 3, -1);
-                Output("Your auth token is: " + authToken);
-                state ServerUnregistered;
+                Output("Base server registered. Now to configure it...");
+                state InitializeServer;
             }
             else
             {
@@ -305,6 +305,11 @@ state StartServer
         }
     }
     
+    on_rez(integer start_param)
+    {
+        llResetScript();    
+    }
+    
     changed(integer change)
     {
         if(change & (CHANGED_OWNER | CHANGED_REGION | CHANGED_REGION_START))
@@ -317,17 +322,45 @@ state StartServer
 
 
 
-state ServerUnregistered
+state InitializeServer
 {
     state_entry()
     {
+        expectedAuthToken = authToken;
+        authToken = "";
+        
         llSetColor(<1, 1, 0>, ALL_SIDES);
-        Output("Click to begin registration...");   
+        Output("Click to configure...");
     }
-    
+
     touch(integer num_detected)
     {
-        confirmRequestId = llHTTPRequest(URL_CONFIRM, [HTTP_METHOD, "POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"], "serverType=" + llEscapeURL(serverType) + "&authToken=" + authToken);
+        if(llDetectedKey(0) != llGetOwner())
+        {
+            return;   
+        }
+        
+        llListen(CHANNEL_INIT_SERVERTYPE, "", llGetOwner(), "");
+        llDialog(llGetOwner(), "Server Type", ServerTypes, CHANNEL_INIT_SERVERTYPE);
+        llSetTimerEvent(10);
+    }
+    
+    listen(integer channel, string name, key id, string message)
+    {
+        if(channel != CHANNEL_INIT_SERVERTYPE || id != llGetOwner())
+        {
+            return;
+        }
+        
+        if(llListFindList(ServerTypes, [message]) == -1)
+        {
+            Output("Error: Invalid server type '" + message + "'");
+            return;
+        }
+        
+        selectedServerType = message;
+        
+        Output("Selected '" + selectedServerType +"'. Please create a notecard named 'Config' with the following contents and add it to this object's inventory:\nauthtoken=" + expectedAuthToken);
     }
     
     http_response(key requestId, integer status, list metadata, string body)
@@ -336,8 +369,8 @@ state ServerUnregistered
         {
             if(status == 200 && llGetSubString(body, 0, 2) == "OK.")
             {
-                Output("Server confirmed!");
-                state ServerRunning;
+                Output("Server confirmed! Restarting...");
+                llResetScript();
             }
             else
             {
@@ -347,7 +380,67 @@ state ServerUnregistered
         } 
         else
         {
-            Output("Unknown request");
+            Output("Unknown response: " + body);
+        }
+    }
+    
+    on_rez(integer start_param)
+    {
+        llResetScript();    
+    }
+    
+    changed(integer change)
+    {
+        if(change & (CHANGED_OWNER | CHANGED_REGION | CHANGED_REGION_START))
+        {
+            Output("Resetting...");
+            llResetScript();
+        }
+        else if(change & CHANGED_INVENTORY)
+        {
+            if(llGetInventoryType(CONFIG_PATH) != INVENTORY_NONE)
+            {
+                if(llGetInventoryKey(CONFIG_PATH) != NULL_KEY)
+                {
+                    Output("Reading config...");
+                    currentConfigLine = 0;
+                    configQueryId = llGetNotecardLine(CONFIG_PATH, currentConfigLine);
+                    return;
+                }
+                else
+                {
+                    Output("Config file has no key (Never saved? Not full-perm?). You must add the following line to the Config notecard:\nauthtoken=" + expectedAuthToken);
+                }
+            }
+        }
+    }
+    
+    dataserver(key queryId, string data)
+    {
+        if(queryId == configQueryId)
+        {
+            if(data == EOF)
+            {
+                Output("Unexpected end of line. You must add the following line to the Config notecard:\nauthtoken=" + expectedAuthToken);
+                return;
+            }
+            
+            processConfigLine(data);
+            
+            if(authToken != "" && authToken != expectedAuthToken)
+            {
+                Output("Unexpected auth token. You must add the following line to the Config notecard:\nauthtoken=" + expectedAuthToken);
+                authToken = "";
+            }
+            else if(authToken == expectedAuthToken)
+            {
+                Output("Config file valid. Confirming server...");
+                confirmRequestId = llHTTPRequest(URL_CONFIRM, [HTTP_METHOD, "POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"], "serverType=" + llEscapeURL(selectedServerType) + "&authToken=" + authToken);
+            }
+            else
+            {
+                configQueryId = llGetNotecardLine(CONFIG_PATH, ++currentConfigLine);    
+            }
         }
     }
 }
@@ -376,6 +469,11 @@ state ServerRunning
         {
             llHTTPResponse(requestId, 501, "Not Implemented");
         }
+    }
+    
+    on_rez(integer start_param)
+    {
+        llResetScript();    
     }
     
     changed(integer change)

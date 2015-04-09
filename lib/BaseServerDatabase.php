@@ -228,7 +228,7 @@ class BaseServerDatabase
 		$statement->execute();
 	}
 
-	function UpdateServer($authToken, $address, $name, $shardName, $regionName, $positionX, $positionY, $positionZ, $enabled)
+	function UpdateServer($authToken, $objectKey, $address, $name, $shardName, $regionName, $positionX, $positionY, $positionZ, $enabled)
 	{
 		$shardId = $this->GetOrCreateShardId($shardName);
 		$regionId = $this->GetOrCreateRegionId($regionName, $shardId);
@@ -242,10 +242,12 @@ class BaseServerDatabase
 											positionZ = :positionZ,
 											enabled = :enabled
 										WHERE authToken = :authToken
+										AND objectKey = :objectKey
 										LIMIT 1");
 
 		$statement->execute(array(
 			'authToken' => $authToken,
+			'objectKey' => $objectKey,
 			'address' => $address,
 			'name' => $name,
 			'regionId' => $regionId,
