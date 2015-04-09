@@ -38,6 +38,7 @@ class PopulationServerDatabase extends BaseServerDatabase
 		for($i = 0; $i < sizeof($results); ++$i)
 		{
 			$results[$i]['enabled'] = (bool)$results[$i]['enabled'];
+			$results[$i]['publicToken'] = bin2hex($results[$i]['publicToken']);
 			$results[$i]['currentPopulation'] = (int)$results[$i]['currentPopulation'];
 		}
 

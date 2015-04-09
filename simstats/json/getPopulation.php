@@ -31,7 +31,15 @@ if(!isset($_GET['publicToken']))
 {
 	die("Missing publicToken");
 }
-$publicToken = $_GET['publicToken'];
+
+$publicToken = @hex2bin($_GET['publicToken']);
+if(!$publicToken)
+{
+	http_response_code("500");
+	LogAndEchoJson("Invalid publicToken");
+	die();
+}
+
 $format = null;
 
 $start = null;

@@ -13,8 +13,14 @@ if(!isset($_POST["authToken"]))
 	LogAndEcho("Missing authToken");
 	die();
 }
-$authToken = hex2bin($_POST["authToken"]);
 
+$authToken = @hex2bin($_POST["authToken"]);
+if(!$authToken)
+{
+	http_response_code("500");
+	LogAndEcho("Invalid authToken");
+	die();
+}
 
 if(!isset($_POST["serverType"]))
 {

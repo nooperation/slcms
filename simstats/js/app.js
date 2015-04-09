@@ -12,30 +12,30 @@ myApp.controller('graphListController',['$http', function($http){
     var servers = [];
     var selectedServer = -1;
 
-    this.showGraph = function(serverId) {
-        if(selectedServer == serverId) {
+    this.showGraph = function(publicToken) {
+        if(selectedServer == publicToken) {
             selectedServer = -1;
             currentGraph = null;
             return;
         }
-        selectedServer = serverId;
-        this.loadGraph(serverId);
-        this.loadTable(serverId);
+        selectedServer = publicToken;
+        this.loadGraph(publicToken);
+        this.loadTable(publicToken);
     };
 
-    this.isShown = function(serverId) {
-        return selectedServer == serverId;
+    this.isShown = function(publicToken) {
+        return selectedServer == publicToken;
     };
 
-    this.loadGraph = function(serverId) {
+    this.loadGraph = function(publicToken) {
         var context = this;
         var today = Math.round(new Date()/1000);
         var yesterday = today - 86400;
 
         // TODO: DOM elements haven't been added just yet... we're just hoping the http request takes enough time for all the graph divs to have evaluated by now
-        $http.get('json/getPopulation.php?format=google&serverId=' + serverId + "&start=" + yesterday + "&end=" + today).success(function(data) {
+        $http.get('json/getPopulation.php?format=google&publicToken=' + publicToken + "&start=" + yesterday + "&end=" + today).success(function(data) {
             if(data.data.length > 0) {
-                context.drawGraph(data, document.getElementById("graph_" + serverId));
+                context.drawGraph(data, document.getElementById("graph_" + publicToken));
             }
         });
     };
@@ -63,8 +63,8 @@ myApp.controller('graphListController',['$http', function($http){
         currentGraph = graph;
     };
 
-    this.loadTable = function(serverId) {
-        var tableElement =  $("#usersTable_" + serverId);
+    this.loadTable = function(publicToken) {
+        var tableElement =  $("#usersTable_" + publicToken);
 
         if( $.fn.dataTable.isDataTable(tableElement)) {
             tableElement.destroy();
@@ -76,7 +76,7 @@ myApp.controller('graphListController',['$http', function($http){
             "searching": false,
             "info": false,
             "paging": false,
-            "ajax": "json/getOnlineUsers.php?serverId=" + serverId,
+            "ajax": "json/getOnlineUsers.php?publicToken=" + publicToken,
             "columns": [
                 { "data": "DisplayName" },
                 { "data": "Username" },

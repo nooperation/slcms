@@ -254,6 +254,8 @@ class BaseServerDatabase
 			'positionZ' => $positionZ,
 			'enabled' => $enabled ? 1 : 0
 		));
+
+		return $statement->rowCount();
 	}
 
 	function RegenerateServerTokens($authToken)

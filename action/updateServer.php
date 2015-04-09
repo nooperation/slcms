@@ -20,13 +20,20 @@ if(!isset($_POST["authToken"]))
 }
 
 $address = $_POST["address"];
-$authToken = hex2bin($_POST["authToken"]);
+
+$authToken = @hex2bin($_POST["authToken"]);
+if(!$authToken)
+{
+	http_response_code("500");
+	LogAndEcho("Invalid authToken");
+	die();
+}
 
 $slHeader = new SecondlifeHeader($_SERVER);
 if(!$slHeader->isSecondlifeRequest)
 {
 	http_response_code("500");
-	LogToFile("Invalid secondlife header");
+	LogAndEcho("Invalid secondlife header");
 	die();
 }
 
@@ -38,18 +45,25 @@ try
 catch(Exception $ex)
 {
 	http_response_code("500");
-	LogToFile("Failed to connect to database. See log for details.", $ex->getMessage());
+	LogAndEcho("Failed to connect to database. See log for details.", $ex->getMessage());
 	die();
 }
 
 try
 {
-	$db->UpdateServer($authToken, $address, $slHeader->objectName, $slHeader->shard, $slHeader->region, $slHeader->localPosition['x'], $slHeader->localPosition['y'], $slHeader->localPosition['z'], true);
+	$rowsAffected = $db->UpdateServer($authToken, $address, $slHeader->objectName, $slHeader->shard, $slHeader->region['name'], $slHeader->localPosition['x'], $slHeader->localPosition['y'], $slHeader->localPosition['z'], true);
 }
 catch(Exception $ex)
 {
 	http_response_code("500");
-	LogToFile("Failed to register server. See log for details.", $ex->getMessage());
+	LogAndEcho("Failed to update server. See log for details.", $ex->getMessage());
+	die();
+}
+
+if($rowsAffected == 0)
+{
+	http_response_code("500");
+	LogAndEcho("Failed to update server: 0 rows affected");
 	die();
 }
 

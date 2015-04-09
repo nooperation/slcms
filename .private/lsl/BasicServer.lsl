@@ -4,6 +4,7 @@ string URL_UPDATE = "http://localhost:19420/simstats/action/updateServer.php";
 string URL_CONFIRM = "http://localhost:19420/simstats/action/confirmServer.php";
 string serverType = "Population Server";
 key registerRequestId;
+key updateRequestId;
 key urlRequestId; 
 key listenKey;
 string assignedUrl = "";
@@ -14,15 +15,82 @@ key configQueryId = NULL_KEY;
 string authToken = "";
 key confirmRequestId = NULL_KEY;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ++++++  HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
+//                               FOR LOCAL OpenSim TESTING ONLY
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+string JSON_OBJECT = "﷑";
+string llList2Json( string type, list values )
+{
+    string buff = "{";
+    integer numItems = llGetListLength(values);
+    integer i;
+    
+    for(i = 0; i < numItems; i += 2)
+    {
+        string itemKey = llList2String(values, i);
+        string itemValue = llList2String(values, i+1);
+        
+        buff += "\"" + itemKey + "\":\"" + itemValue + "\"";
+                    
+        if(i < numItems-2)
+        {
+            buff += ",";
+        }
+    }
+    buff += "}";
+    
+    return buff;
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ----- HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+string BuildQueryResult()
+{
+    list agentsInRegion = llGetAgentList(AGENT_LIST_REGION, []);
+    integer numAgentsInRegion = llGetListLength(agentsInRegion);
+    
+    string response = "{\"Players\":[";
+    integer i;
+    
+    for(i = 0; i < numAgentsInRegion; i++)
+    {
+        key agentKey = llList2Key(agentsInRegion, i);
+        list agentDetails = llGetObjectDetails(agentKey, [OBJECT_SCRIPT_MEMORY, OBJECT_SCRIPT_TIME, OBJECT_POS]);
+        
+        response += llList2Json(JSON_OBJECT, [
+            "DisplayName", llGetDisplayName(agentKey),
+            "Username", llGetUsername(agentKey),
+            "Key", (string)agentKey,
+            "Pos", llList2String(agentDetails, 2),
+            "Memory", llList2String(agentDetails, 0),
+            "CPU", llList2String(agentDetails, 1)
+        ]);
+        if(i < numAgentsInRegion-1)
+        {
+            response += ",";   
+        }
+    }
+    
+    response += "]}";
+    
+    return response;
+}
 
 integer ProcessRequest(list pathParts, key requestId)
 {
     string firstPathPart = llList2String(pathParts, 0);
-    
-    if(firstPathPart == "test")
+
+    if(firstPathPart == "Base")
     {
-        llHTTPResponse(requestId, 200, "Hi!");
-        return TRUE;
+        string secondPathPart = llList2String(pathParts, 1);
+        
+        if(secondPathPart == "GetOnlineUsers")
+        {
+            llHTTPResponse(requestId, 200, BuildQueryResult());
+            return TRUE;
+        }
     }
     
     return FALSE;
@@ -192,7 +260,7 @@ state StartServer
             else
             {
                 Output("Updating server...");  
-                registerRequestId = llHTTPRequest(URL_UPDATE, [HTTP_METHOD, "POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"], "address=" +  llEscapeURL(assignedUrl) + "&authToken=" + authToken); 
+                updateRequestId = llHTTPRequest(URL_UPDATE, [HTTP_METHOD, "POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"], "address=" +  llEscapeURL(assignedUrl) + "&authToken=" + authToken); 
             }
         }
         else if(method == URL_REQUEST_DENIED)
@@ -218,6 +286,19 @@ state StartServer
                 return;
             }
         } 
+        else if(requestId == updateRequestId)
+        {
+            if(status == 200 && llGetSubString(body, 0, 2) == "OK.")
+            {
+                Output("Updated!");
+                state ServerRunning;
+            }
+            else
+            {
+                Output("Failed to update: " + body);
+                return;
+            }
+        }
         else
         {
             Output("Unknown request");
