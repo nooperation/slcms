@@ -44,7 +44,15 @@ function AttemptRegister($username, $password, $passwordConfirm)
 		if($userConfirm != null)
 		{
 			$_SESSION['user'] = $userConfirm;
-			header("Location: index.php");
+			
+			if(isset($_SESSION['actionToRestoreOnLogin']))
+			{
+				header("Location: " . $_SESSION['actionToRestoreOnLogin']);
+			}
+			else
+			{
+				header("Location: index.php");
+			}
 			die();
 		}
 
