@@ -168,21 +168,9 @@ class BaseServerDatabase
 		$ownerId = $this->GetOrCreateAgentId($ownerName, $ownerKey, $shardId);
 		$regionId = $this->GetOrCreateRegionId($regionName, $shardId);
 
-		$uninitializedServerAuthToken = $this->GetUninitializedServerAuthToken($objectKey);
-		if(!$uninitializedServerAuthToken)
-		{
-			return $this->RegisterServerEx($shardId, $regionId, $ownerId, null, $address, $objectKey, $serverName, $enabled, $positionX, $positionY, $positionZ);
-		}
-		else
-		{
-			$newTokens = $this->RegenerateServerTokens($uninitializedServerAuthToken);
-			if(!$newTokens)
-			{
-				Throw new Exception("Failed to recreate tokens for uninitialized server");
-			}
+		$this->RemoveUninitializedServer($objectKey);
 
-			return $newTokens;
-		}
+		return $this->RegisterServerEx($shardId, $regionId, $ownerId, null, $address, $objectKey, $serverName, $enabled, $positionX, $positionY, $positionZ);
 	}
 
 	public function RegisterServerEx($shardId, $regionId, $ownerId, $userId, $address, $objectKey, $name, $enabled, $positionX, $positionY, $positionZ)
@@ -246,12 +234,11 @@ class BaseServerDatabase
 		return array('authToken' => $authToken, 'publicToken' => $publicToken);
 	}
 
-	function GetUninitializedServerAuthToken($objectKey)
+	function RemoveUninitializedServer($objectKey)
 	{
-		$statement = $this->db->prepare("SELECT authToken
+		$statement = $this->db->prepare("DELETE
 										FROM server
 										WHERE
-											serverTypeId is null AND
 											objectKey = :objectKey
 											AND userId IS NULL
 											AND serverTypeId IS NULL
@@ -261,12 +248,7 @@ class BaseServerDatabase
 			'objectKey' => $objectKey,
 		));
 
-		$result = $statement->fetch(PDO::FETCH_ASSOC);
-
-		if(!isset($result['authToken']))
-			return null;
-
-		return $result['authToken'];
+		return;
 	}
 
 	function SetServerStatus($authToken, $isEnabled)
