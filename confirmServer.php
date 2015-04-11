@@ -65,7 +65,7 @@ if(!$serverAddress)
 	die("Failed to get server address!");
 }
 
-echo "Address: " . $serverAddress . "<br />";
+echo "Address: " . $serverAddress . "<br /><br/>";
 
 $serverResponse = @file_get_contents($serverAddress . "?path=/Base/Confirm");
 if($serverResponse == "OK.")
@@ -78,8 +78,9 @@ if($serverResponse == "OK.")
 			die("Failed to claim server");
 		}
 
-		echo "<script>alert('Server successfully registered!');</script>";
-		header("Location: index.php");
+		echo "<p>Server successfully registered!</p><br />";
+		echo "<a href='index.php'>Click to go back...</a><br />";
+		die();
 	}
 }
 
