@@ -31,6 +31,48 @@ class BaseServerDatabase
 	// TABLE: server
 	////////////////////
 
+	public function GetServersForUser($userId)
+	{
+		$statement = $this->db->prepare("SELECT
+											server.id,
+											server.serverTypeId,
+											server_type.name as 'serverTypeName',
+											shard.name AS 'shardName',
+											region.name as 'regionName',
+											agent.name AS 'ownerName',
+											user.name as 'userName',
+											server.address,
+											server.authToken,
+											server.publicToken,
+											server.objectKey,
+											agent.uuid AS 'ownerKey',
+											server.name AS 'serverName',
+											server.enabled,
+											server.created,
+											server.updated,
+											server.positionX,
+											server.positionY,
+											server.positionZ
+										FROM
+											server
+											LEFT JOIN shard ON shard.id = server.shardId
+											LEFT JOIN agent ON agent.id = server.ownerId
+											LEFT JOIN region on region.id = server.regionId
+											LEFT JOIN server_type on server_type.id = server.serverTypeId
+											LEFT JOIN user on user.id = server.userId
+										WHERE
+											server.userId = :userId");
+
+
+		$statement->execute(array(
+								'userId' => $userId,
+							));
+
+		$result = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+		return $result;
+	}
+
 	public function GetServersOfThisType()
 	{
 		$serverTypeId = $this->GetServerTypeId($this->serverTypeName);
@@ -52,31 +94,28 @@ class BaseServerDatabase
 		return $result;
 	}
 
-	public function InitServer($authToken)
+	public function InitServer($authToken, $userId, $serverTypeName)
 	{
-		$serverTypeId = $this->GetServerTypeId($this->serverTypeName);
+		$serverTypeId = $this->GetServerTypeId($serverTypeName);
 		if(!$serverTypeId === null)
 		{
 			throw new Exception('Could not find server type with name: "' . $serverTypeId . '"');
 		}
 
 		$statement = $this->db->prepare("UPDATE server SET
-											serverTypeId = :serverTypeId
+											serverTypeId = :serverTypeId,
+											userId = :userId
 										WHERE authToken = :authToken
 										AND serverTypeId is null
 										LIMIT 1");
 
 		$statement->execute(array(
 			'serverTypeId' => $serverTypeId,
-			'authToken' => $authToken
+			'authToken' => $authToken,
+			'userId' => $userId
 		));
 
-		if($statement->rowCount() == 0)
-		{
-			throw new Exception("Failed to InitServer: rowcount = 0");
-		}
-
-		return $serverTypeId;
+		return $statement->rowCount() != 0;
 	}
 
 	function DropTestServers()
@@ -200,8 +239,9 @@ class BaseServerDatabase
 										FROM server
 										WHERE
 											serverTypeId is null AND
-											objectKey = :objectKey AND
-											userId is null
+											objectKey = :objectKey
+											AND userId IS NULL
+											AND serverTypeId IS NULL
 										LIMIT 1");
 
 		$statement->execute(array(
@@ -221,6 +261,8 @@ class BaseServerDatabase
 		$statement = $this->db->prepare("UPDATE server SET
 											enabled = :isEnabled
 										WHERE authToken = :authToken
+										AND userId IS NOT NULL
+										AND serverTypeId IS NOT NULL
 										LIMIT 1");
 
 		$statement->bindParam('authToken', $authToken, PDO::PARAM_LOB);
@@ -242,6 +284,8 @@ class BaseServerDatabase
 											positionZ = :positionZ,
 											enabled = :enabled
 										WHERE authToken = :authToken
+										AND userId IS NOT NULL
+										AND serverTypeId IS NOT NULL
 										AND objectKey = :objectKey
 										LIMIT 1");
 
@@ -326,6 +370,25 @@ class BaseServerDatabase
 		return $newPublicToken;
 	}
 
+	function GetServerAddressPrivate($authToken)
+	{
+		$statement = $this->db->prepare("SELECT address
+										FROM server
+										WHERE authToken = :authToken
+										LIMIT 1");
+
+		$statement->execute(array(
+								'authToken' => $authToken
+							));
+
+		$result = $statement->fetch(PDO::FETCH_ASSOC);
+
+		if(!isset($result['address']))
+			return null;
+
+		return $result['address'];
+	}
+
 	function GetServerAddress($publicToken)
 	{
 		$statement = $this->db->prepare("SELECT address
@@ -375,7 +438,9 @@ class BaseServerDatabase
 											LEFT JOIN server_type on server_type.id = server.serverTypeId
 											LEFT JOIN user on user.id = server.userId
 										WHERE
-											server.authToken = :authToken");
+											server.authToken = :authToken
+											AND userId IS NOT NULL
+											AND serverTypeId IS NOT NULL");
 		$statement->execute(array(
 			'authToken' => $authToken
 		));

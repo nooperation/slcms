@@ -1,7 +1,8 @@
 // Server data
-string URL_REGISTER = "http://localhost:19420/simstats/action/registerServer.php";
-string URL_UPDATE = "http://localhost:19420/simstats/action/updateServer.php";
-string URL_CONFIRM = "http://localhost:19420/simstats/action/confirmServer.php";
+string URL_REGISTER = "http://localhost:19420/action/registerServer.php";
+string URL_UPDATE = "http://localhost:19420/action/updateServer.php";
+string URL_CONFIRM = "http://localhost:19420/confirmServer.php";
+
 string serverType = "Population Server";
 key registerRequestId;
 key updateRequestId;
@@ -13,21 +14,15 @@ string CONFIG_PATH = "Config";
 integer currentConfigLine = 0;
 key configQueryId = NULL_KEY;
 string authToken = "";
+string expectedAuthToken = "";
 key confirmRequestId = NULL_KEY;
 
-
-integer CHANNEL_INIT_SERVERTYPE = -43285723;
-string SERVER_TYPE_POPULATION = "Population Server";
-string SERVER_TYPE_BASE = "Base Server";
-list ServerTypes = [SERVER_TYPE_POPULATION, SERVER_TYPE_BASE];
-string selectedServerType = "";
-string expectedAuthToken = "";
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ++++++  HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
 //                               FOR LOCAL OpenSim TESTING ONLY
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*string JSON_OBJECT = "﷑";
+string JSON_OBJECT = "﷑";
 string llList2Json( string type, list values )
 {
     string buff = "{";
@@ -49,7 +44,7 @@ string llList2Json( string type, list values )
     buff += "}";
     
     return buff;
-}*/
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ----- HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +84,8 @@ string BuildQueryResult()
 integer ProcessRequest(list pathParts, key requestId)
 {
     string firstPathPart = llList2String(pathParts, 0);
-
+    llOwnerSay("Request: " + llDumpList2String(pathParts, "|"));
+    
     if(firstPathPart == "Base")
     {
         string secondPathPart = llList2String(pathParts, 1);
@@ -98,6 +94,18 @@ integer ProcessRequest(list pathParts, key requestId)
         {
             llHTTPResponse(requestId, 200, BuildQueryResult());
             return TRUE;
+        }
+        else if(secondPathPart == "Confirm")
+        {
+            llOwnerSay("Sent -> OK");
+            llHTTPResponse(requestId, 200, "OK.");
+            return TRUE;   
+        }
+        else if(secondPathPart == "InitComplete")
+        {
+            llOwnerSay("Sent -> OK");
+            llHTTPResponse(requestId, 200, "OK.");
+            state StartServer;
         }
     }
     
@@ -177,28 +185,45 @@ processConfigLine(string line)
     processTriggerLine(line);
 }
 
-default
+integer ReadConfig()
 {
-    state_entry()
+    authToken = "";
+    
+    if(llGetInventoryType(CONFIG_PATH) != INVENTORY_NONE)
     {
-        Output("Fresh state");
-        
-        if(llGetInventoryType(CONFIG_PATH) != INVENTORY_NONE)
+        if(llGetInventoryKey(CONFIG_PATH) != NULL_KEY)
         {
-            if(llGetInventoryKey(CONFIG_PATH) != NULL_KEY)
+            Output("Reading config...");
+            currentConfigLine = 0;
+            configQueryId = llGetNotecardLine(CONFIG_PATH, currentConfigLine);
+            return TRUE;
+        }
+        else
+        {
+            if(authToken != "")
             {
-                Output("Reading config...");
-                currentConfigLine = 0;
-                configQueryId = llGetNotecardLine(CONFIG_PATH, currentConfigLine);
-                return;
+                Output("Config file has no key (Never saved? Not full-perm?). You must add the following line to the Config notecard:\nauthtoken=" + authToken);
             }
             else
             {
                 Output("Config file has no key (Never saved? Not full-perm?)");   
             }
         }
+    }
+    
+    return FALSE;
+}
+
+default
+{
+    state_entry()
+    {
+        Output("Fresh state");
         
-        state StartServer;
+        if(!ReadConfig())
+        {
+            state StartServer;
+        }
     }
 
     dataserver(key queryId, string data)
@@ -296,6 +321,7 @@ state StartServer
             else
             {
                 Output("Failed to update: " + body);
+                Output("Make sure your auth token is correct");
                 return;
             }
         }
@@ -317,76 +343,44 @@ state StartServer
             Output("Resetting...");
             llResetScript();
         }
+        if(change & CHANGED_INVENTORY)
+        {
+            Output("Resetting...");
+            llResetScript();   
+        }
     }
 }
-
 
 
 state InitializeServer
 {
     state_entry()
     {
+        llSetColor(<1, 1, 0>, ALL_SIDES);
+        Output("Looking for config...");
+        
         expectedAuthToken = authToken;
         authToken = "";
         
-        llSetColor(<1, 1, 0>, ALL_SIDES);
-        Output("Click to configure...");
-    }
-
-    touch(integer num_detected)
-    {
-        if(llDetectedKey(0) != llGetOwner())
+        if(!ReadConfig())
         {
-            return;   
-        }
-        
-        llListen(CHANNEL_INIT_SERVERTYPE, "", llGetOwner(), "");
-        llDialog(llGetOwner(), "Server Type", ServerTypes, CHANNEL_INIT_SERVERTYPE);
-        llSetTimerEvent(10);
-    }
-    
-    listen(integer channel, string name, key id, string message)
-    {
-        if(channel != CHANNEL_INIT_SERVERTYPE || id != llGetOwner())
-        {
-            return;
-        }
-        
-        if(llListFindList(ServerTypes, [message]) == -1)
-        {
-            Output("Error: Invalid server type '" + message + "'");
-            return;
-        }
-        
-        selectedServerType = message;
-        
-        Output("Selected '" + selectedServerType +"'. Please create a notecard named 'Config' with the following contents and add it to this object's inventory:\nauthtoken=" + expectedAuthToken);
-    }
-    
-    http_response(key requestId, integer status, list metadata, string body)
-    {
-        if (requestId == confirmRequestId)
-        {
-            if(status == 200 && llGetSubString(body, 0, 2) == "OK.")
-            {
-                Output("Server confirmed! Restarting...");
-                llResetScript();
-            }
-            else
-            {
-                Output("Failed to confirm server: " + body);
-                return;
-            }
-        } 
-        else
-        {
-            Output("Unknown response: " + body);
+            Output("Please create a notecard named 'Config' with the following contents and add it to this object's inventory:\nauthtoken=" + expectedAuthToken);
         }
     }
     
     on_rez(integer start_param)
     {
         llResetScript();    
+    }
+    
+    touch(integer num_detected)
+    {
+        if(llDetectedKey(0) != llGetOwner())
+        {
+            return;
+        }
+        
+        ReadConfig();
     }
     
     changed(integer change)
@@ -398,20 +392,26 @@ state InitializeServer
         }
         else if(change & CHANGED_INVENTORY)
         {
-            if(llGetInventoryType(CONFIG_PATH) != INVENTORY_NONE)
-            {
-                if(llGetInventoryKey(CONFIG_PATH) != NULL_KEY)
-                {
-                    Output("Reading config...");
-                    currentConfigLine = 0;
-                    configQueryId = llGetNotecardLine(CONFIG_PATH, currentConfigLine);
-                    return;
-                }
-                else
-                {
-                    Output("Config file has no key (Never saved? Not full-perm?). You must add the following line to the Config notecard:\nauthtoken=" + expectedAuthToken);
-                }
-            }
+            ReadConfig();
+        }
+    }
+    
+    http_request(key requestId, string method, string body)
+    {
+        // TODO: This is duplicate code....
+        string requestedPathRaw = ExtractValueFromQuery(llGetHTTPHeader(requestId, "x-query-string"), "path");
+        list requestedPathParts = llParseString2List(requestedPathRaw, ["/"], []);
+        integer numRequestedPathParts = llGetListLength(requestedPathParts);
+
+        if(numRequestedPathParts == 0)
+        {
+            llHTTPResponse(requestId, 400, "Bad Request");
+            return;
+        }
+        
+        if(!ProcessRequest(requestedPathParts, requestId))
+        {
+            llHTTPResponse(requestId, 501, "Not Implemented");
         }
     }
     
@@ -434,8 +434,7 @@ state InitializeServer
             }
             else if(authToken == expectedAuthToken)
             {
-                Output("Config file valid. Confirming server...");
-                confirmRequestId = llHTTPRequest(URL_CONFIRM, [HTTP_METHOD, "POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"], "serverType=" + llEscapeURL(selectedServerType) + "&authToken=" + authToken);
+                Output("Config file valid. Visit the following URL to complete initialization:\n" + URL_CONFIRM + "?authToken=" + authToken);
             }
             else
             {
