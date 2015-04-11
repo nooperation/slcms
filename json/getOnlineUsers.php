@@ -1,7 +1,7 @@
 <?php
 
-include_once(dirname(__FILE__) . "/../../lib/BaseServerDatabase.php");
-include_once(dirname(__FILE__) . "/../../lib/Utils.php");
+include_once(dirname(__FILE__) . "/../lib/BaseServerDatabase.php");
+include_once(dirname(__FILE__) . "/../lib/Utils.php");
 
 if(!isset($_GET['publicToken']))
 {

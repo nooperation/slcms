@@ -7,70 +7,68 @@ google.setOnLoadCallback(function() {
 var myApp = angular.module('populationApp', []);
 var currentGraph = null;
 
-myApp.controller('graphListController',['$http', function($http){
+myApp.controller('userPageController',['$http', '$timeout', function($http, $timeout){
     var base = this;
     var servers = [];
-    var selectedServer = -1;
-
-    this.showGraph = function(publicToken) {
-        if(selectedServer == publicToken) {
-            selectedServer = -1;
-            currentGraph = null;
-            return;
-        }
-        selectedServer = publicToken;
-        this.loadGraph(publicToken);
-        this.loadTable(publicToken);
-    };
 
     this.isShown = function(publicToken) {
-        return selectedServer == publicToken;
+        return true; //selectedServer == serverId;
     };
 
-    this.loadGraph = function(publicToken) {
-        var context = this;
-        var today = Math.round(new Date()/1000);
-        var yesterday = today - 86400;
-
-        // TODO: DOM elements haven't been added just yet... we're just hoping the http request takes enough time for all the graph divs to have evaluated by now
-        $http.get('json/getPopulation.php?format=google&publicToken=' + publicToken + "&start=" + yesterday + "&end=" + today).success(function(data) {
-            if(data.data.length > 0) {
-                context.drawGraph(data, document.getElementById("graph_" + publicToken));
-            }
+    this.initUserPage = function(publicToken) {
+        $timeout(function() {
+            // Should be executed once all our objects have been rendered?
+            $.getJSON("json/getServerStatus.php?publicToken=" + publicToken, function(data) {
+                if(data) {
+                    base.setServerResponding(publicToken);
+                    base.showGraph(publicToken);
+                }
+                else {
+                    base.setServerNotResponding(publicToken);
+                }
+            });
         });
     };
 
-    this.drawGraph = function(data, element){
-        // specify options
-        var options = {
-            "width": "100%",
-            "min": data.data[0].date,
-            "max": data.data[data.data.length-1].date,
-            "lines": [{
-                color: "#97C2FC", width: 2, legend: false
-            }],
-            "tooltip": function (point) {
-                return new Date(point.date) + '<br />Players: ' + point.value;
-            }
-        };
+    this.setServerResponding = function(publicToken) {
+        var contentsElement = $("#server_" + publicToken);
 
-        // Instantiate our graph object.
-        var graph = new links.Graph(element);
+    };
 
-        // Draw our graph with the created data and options
-        graph.draw([data], options);
+    this.setServerNotResponding = function(publicToken) {
+        var contentsElement = $("#server_" + publicToken);
+        contentsElement.addClass('serverNotResponding');
+    };
 
-        currentGraph = graph;
+    this.toggleShown = function(publicToken) {
+        var contentsElement = $("#contents_" + publicToken);
+
+        if(contentsElement.is(":hidden")) {
+            this.showGraph(publicToken);
+            contentsElement.show();
+        }
+        else {
+            contentsElement.hide();
+        }
+    };
+
+    this.reloadTable = function(publicToken) {
+        var tableElement =  $("#usersTable_" + publicToken).DataTable();
+
+        if(tableElement && tableElement.json) {
+            alert('reload');
+            tableElement.ajax.reload();
+        }
+    };
+
+    this.showGraph = function(publicToken) {
+        this.loadTable(publicToken);
     };
 
     this.loadTable = function(publicToken) {
-        var tableElement =  $("#usersTable_" + publicToken);
 
-        if( $.fn.dataTable.isDataTable(tableElement)) {
-            tableElement.destroy();
-        }
-
-        tableElement.DataTable({
+        $("#usersTable_" + publicToken).DataTable({
+            "destroy": true,
             "order": [5, "desc"],
             "bSortClasses": false,
             "searching": false,
@@ -127,9 +125,3 @@ myApp.controller('graphListController',['$http', function($http){
         alert("Failed to load servers: " + data);
     });
 }]);
-
-redrawGraphs = function () {
-    if(currentGraph != null) {
-        currentGraph.redraw();
-    }
-};

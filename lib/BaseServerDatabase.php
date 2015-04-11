@@ -34,8 +34,8 @@ class BaseServerDatabase
 	public function GetServersForUser($userId)
 	{
 		$statement = $this->db->prepare("SELECT
-											server.id,
-											server.serverTypeId,
+											-- server.id,
+											-- server.serverTypeId,
 											server_type.name as 'serverTypeName',
 											shard.name AS 'shardName',
 											region.name as 'regionName',
@@ -69,6 +69,16 @@ class BaseServerDatabase
 							));
 
 		$result = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+		for($i = 0; $i < sizeof($result); ++$i)
+		{
+			$result[$i]['publicToken'] = bin2hex($result[$i]['publicToken']);
+			$result[$i]['authToken'] = bin2hex($result[$i]['authToken']);
+			$result[$i]['enabled'] = (bool)$result[$i]['enabled'];
+			$result[$i]['positionX'] = (float)$result[$i]['positionX'];
+			$result[$i]['positionY'] = (float)$result[$i]['positionY'];
+			$result[$i]['positionZ'] = (float)$result[$i]['positionZ'];
+		}
 
 		return $result;
 	}
