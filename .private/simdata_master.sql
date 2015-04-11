@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `agent` (
   CONSTRAINT `fk_users_shards1`
     FOREIGN KEY (`shardId`)
     REFERENCES `shard` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE RESTRICT
     ON UPDATE CASCADE)
 ENGINE = InnoDB
 AUTO_INCREMENT = 141
@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS `user` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(64) NOT NULL,
   `hash` VARCHAR(255) NOT NULL,
-  `created` TIMESTAMP NOT NULL,
   `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created` TIMESTAMP NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS `region` (
   CONSTRAINT `fk_Region_shard1`
     FOREIGN KEY (`shardId`)
     REFERENCES `shard` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE RESTRICT
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
@@ -111,8 +111,8 @@ CREATE TABLE IF NOT EXISTS `server` (
   `objectKey` CHAR(36) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `enabled` TINYINT(1) NOT NULL DEFAULT 1,
-  `created` TIMESTAMP NOT NULL,
   `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created` TIMESTAMP NULL,
   `positionX` FLOAT NULL,
   `positionY` FLOAT NULL,
   `positionZ` FLOAT NULL,
@@ -128,27 +128,27 @@ CREATE TABLE IF NOT EXISTS `server` (
   CONSTRAINT `fk_shardId`
     FOREIGN KEY (`shardId`)
     REFERENCES `shard` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE RESTRICT
     ON UPDATE CASCADE,
   CONSTRAINT `fk_ownerId`
     FOREIGN KEY (`ownerId`)
     REFERENCES `agent` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE RESTRICT
     ON UPDATE CASCADE,
   CONSTRAINT `fk_stats_server_user1`
     FOREIGN KEY (`userId`)
     REFERENCES `user` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE RESTRICT
     ON UPDATE CASCADE,
   CONSTRAINT `fk_server_server_type1`
     FOREIGN KEY (`serverTypeId`)
     REFERENCES `server_type` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE RESTRICT
     ON UPDATE CASCADE,
   CONSTRAINT `fk_server_region1`
     FOREIGN KEY (`regionId`)
     REFERENCES `region` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE RESTRICT
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
@@ -189,15 +189,15 @@ CREATE TABLE IF NOT EXISTS `item` (
   `copy` TINYINT(1) NOT NULL DEFAULT 1,
   `modify` TINYINT(1) NOT NULL DEFAULT 1,
   `transfer` TINYINT(1) NOT NULL DEFAULT 0,
-  `created` TIMESTAMP NOT NULL,
   `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created` TIMESTAMP NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `key_UNIQUE` (`objectKey` ASC),
   INDEX `fk_item_vendor1_idx` (`vendorId` ASC),
   CONSTRAINT `fk_item_vendor1`
     FOREIGN KEY (`vendorId`)
     REFERENCES `server` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE RESTRICT
     ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -222,17 +222,17 @@ CREATE TABLE IF NOT EXISTS `transaction` (
   CONSTRAINT `fk_transaction_item1`
     FOREIGN KEY (`itemId`)
     REFERENCES `item` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE RESTRICT
     ON UPDATE CASCADE,
   CONSTRAINT `fk_transaction_vendor`
     FOREIGN KEY (`vendorId`)
     REFERENCES `server` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE RESTRICT
     ON UPDATE CASCADE,
   CONSTRAINT `fk_transaction_agent1`
     FOREIGN KEY (`agentId`)
     REFERENCES `agent` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE RESTRICT
     ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
