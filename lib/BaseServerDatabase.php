@@ -115,7 +115,7 @@ class BaseServerDatabase
 	function RegisterServer($shardName, $ownerKey, $ownerName, $objectKey, $serverName, $regionName, $address, $positionX, $positionY, $positionZ, $enabled)
 	{
 		$shardId = $this->GetOrCreateShardId($shardName);
-		$ownerId = $this->GetOrCreateUserId($ownerKey, $ownerName, $shardId);
+		$ownerId = $this->GetOrCreateAgentId($ownerName, $ownerKey, $shardId);
 		$regionId = $this->GetOrCreateRegionId($regionName, $shardId);
 
 		$uninitializedServerAuthToken = $this->GetUninitializedServerAuthToken($objectKey);
@@ -473,57 +473,82 @@ class BaseServerDatabase
 	// TABLE: user
 	////////////////////
 
-	public function GetUserId($userKey, $shardId)
+	public function RegisterUser($username, $password)
 	{
-		$statement = $this->db->prepare("SELECT id
-										from agent
-										WHERE uuid = :uuid
-										AND shardId = :shardId");
-
-		$statement->execute(array(
-			'uuid' => $userKey,
-			'shardId' => $shardId
-		));
-
-		$result = $statement->fetch(PDO::FETCH_ASSOC);
-
-		if(!isset($result['id']))
-			return null;
-
-		return (int)$result['id'];
-	}
-
-	public function CreateUser($userKey, $name, $shardId)
-	{
-		$statement = $this->db->prepare("INSERT INTO agent (
-											uuid, name, shardId
+		$statement = $this->db->prepare("INSERT INTO user (
+											name, hash
 										) VALUES (
-											:uuid, :name, :shardId
+											:name, :hash
 										)");
 
+		$options = [
+			'cost' => 10, // around 200ms on current host...
+		];
+
+		$hash = password_hash($password, PASSWORD_DEFAULT, $options);
+
 		$statement->execute(array(
-			'uuid' => $userKey,
-			'name' => $name,
-			'shardId' => $shardId
+			'name' => $username,
+			'hash' => $hash
 		));
 
 		if(!$statement->rowCount())
 		{
-			throw new Exception("Failed to add user '" . $name . "' [" . $userKey . "].");
+			return null;
 		}
 
 		return (int)$this->db->lastInsertId();
 	}
 
-	public function GetOrCreateUserId($userKey, $name, $shardId)
+	public function IsUsernameAvailable($username)
 	{
-		$userId = $this->GetUserId($userKey, $shardId);
-		if($userId === null)
+		if(is_null($username))
 		{
-			$userId = $this->CreateUser($userKey, $name, $shardId);
+			return false;
 		}
 
-		return $userId;
+		$statement = $this->db->prepare("SELECT 1
+										from user
+										WHERE name = :username
+										limit 1");
+
+		$statement->execute(array(
+			'username' => $username
+		));
+
+		return $statement->fetch(PDO::FETCH_ASSOC) === false;
+	}
+
+	public function GetUser($username, $password)
+	{
+		if(is_null($username) || is_null($password))
+		{
+			return null;
+		}
+
+		$statement = $this->db->prepare("SELECT id, name, hash
+										from user
+										WHERE name = :username
+										limit 1");
+
+		$statement->execute(array(
+			'username' => $username
+		));
+
+		$result = $statement->fetch(PDO::FETCH_ASSOC);
+
+		if(!isset($result['id']) || !isset($result['hash']))
+		{
+			// todo: timing...?
+			return null;
+		}
+
+		if(!password_verify($password, $result['hash']))
+		{
+			return null;
+		}
+
+		return array('id' => (int)$result['id'], 'name' => $result['name']);
 	}
 
 	////////////////////

@@ -61,8 +61,7 @@ DROP TABLE IF EXISTS `simdata_master`.`user` ;
 CREATE TABLE IF NOT EXISTS `simdata_master`.`user` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(64) NOT NULL,
-  `hash` BINARY(64) NOT NULL,
-  `salt` BINARY(32) NOT NULL,
+  `hash` VARCHAR(255) NOT NULL,
   `created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`))
@@ -267,7 +266,6 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `simdata_master`;
-INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Uninitialized');
 INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Base Server');
 INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Population Server');
 INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Vendor Server');

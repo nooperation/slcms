@@ -27,7 +27,7 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 				'shardName' => "TestShard-" . $i,
 				'ownerKey' => "TestOwnerKey-" . $i,
 				'objectKey' => "TestObjectKey-" .$i,
-				'ownerName' => "TestUser-" . $i,
+				'ownerName' => "TestAgent-" . $i,
 				'serverName' => "TestObject-" . $i,
 				'regionName' => "TestRegion-" . $i,
 				'address' => "TestAddress-" . $i,
@@ -172,7 +172,7 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		$newY = $this->testServers[0]['positionY'] + 1;
 		$newZ = $this->testServers[0]['positionZ'] + 1;
 		$newEnabled = !$this->testServers[0]['enabled'];
-		$this->db->UpdateServer($this->testServers[0]['authToken'], $newAddress, $newObjectName, $this->testServers[0]['shardName'], $newRegionName, $newX, $newY, $newZ, $newEnabled);
+		$this->db->UpdateServer($this->testServers[0]['authToken'], $this->testServers[0]['objectKey'], $newAddress, $newObjectName, $this->testServers[0]['shardName'], $newRegionName, $newX, $newY, $newZ, $newEnabled);
 
 		// Verify data exists
 		$server = $this->db->GetServer($this->testServers[0]['authToken']);

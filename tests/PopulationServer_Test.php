@@ -101,7 +101,7 @@ class PopulationServer_Test extends PHPUnit_Framework_TestCase
 
 		for($i = 0; $i < sizeof($this->testServers); ++$i)
 		{
-			$testPopulationData = array('publicToken' => $this->testServers[$i]['publicToken'],
+			$testPopulationData = array('publicToken' => bin2hex($this->testServers[$i]['publicToken']),
 				'serverName' => $this->testServers[$i]['serverName'],
 				'shardName' => $this->testServers[$i]['shardName'],
 				'userName' => $this->testServers[$i]['ownerName'],
