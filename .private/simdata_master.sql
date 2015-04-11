@@ -7,20 +7,13 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 -- -----------------------------------------------------
 -- Schema simdata_master
 -- -----------------------------------------------------
-DROP SCHEMA IF EXISTS `simdata_master` ;
 
 -- -----------------------------------------------------
--- Schema simdata_master
+-- Table `shard`
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `simdata_master` DEFAULT CHARACTER SET utf8 ;
-USE `simdata_master` ;
+DROP TABLE IF EXISTS `shard` ;
 
--- -----------------------------------------------------
--- Table `simdata_master`.`shard`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `simdata_master`.`shard` ;
-
-CREATE TABLE IF NOT EXISTS `simdata_master`.`shard` (
+CREATE TABLE IF NOT EXISTS `shard` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`),
@@ -29,11 +22,11 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `simdata_master`.`agent`
+-- Table `agent`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `simdata_master`.`agent` ;
+DROP TABLE IF EXISTS `agent` ;
 
-CREATE TABLE IF NOT EXISTS `simdata_master`.`agent` (
+CREATE TABLE IF NOT EXISTS `agent` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(63) NOT NULL,
   `uuid` CHAR(36) NOT NULL,
@@ -45,35 +38,35 @@ CREATE TABLE IF NOT EXISTS `simdata_master`.`agent` (
   UNIQUE INDEX `uri_UNIQUE` (`authToken` ASC),
   CONSTRAINT `fk_users_shards1`
     FOREIGN KEY (`shardId`)
-    REFERENCES `simdata_master`.`shard` (`id`)
-    ON DELETE RESTRICT
-    ON UPDATE RESTRICT)
+    REFERENCES `shard` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 AUTO_INCREMENT = 141
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
--- Table `simdata_master`.`user`
+-- Table `user`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `simdata_master`.`user` ;
+DROP TABLE IF EXISTS `user` ;
 
-CREATE TABLE IF NOT EXISTS `simdata_master`.`user` (
+CREATE TABLE IF NOT EXISTS `user` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(64) NOT NULL,
   `hash` VARCHAR(255) NOT NULL,
-  `created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created` TIMESTAMP NOT NULL,
   `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `simdata_master`.`server_type`
+-- Table `server_type`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `simdata_master`.`server_type` ;
+DROP TABLE IF EXISTS `server_type` ;
 
-CREATE TABLE IF NOT EXISTS `simdata_master`.`server_type` (
+CREATE TABLE IF NOT EXISTS `server_type` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
@@ -82,11 +75,11 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `simdata_master`.`region`
+-- Table `region`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `simdata_master`.`region` ;
+DROP TABLE IF EXISTS `region` ;
 
-CREATE TABLE IF NOT EXISTS `simdata_master`.`region` (
+CREATE TABLE IF NOT EXISTS `region` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `shardId` INT(11) UNSIGNED NOT NULL,
   `name` VARCHAR(63) NOT NULL,
@@ -94,18 +87,18 @@ CREATE TABLE IF NOT EXISTS `simdata_master`.`region` (
   INDEX `fk_Region_shard1_idx` (`shardId` ASC),
   CONSTRAINT `fk_Region_shard1`
     FOREIGN KEY (`shardId`)
-    REFERENCES `simdata_master`.`shard` (`id`)
+    REFERENCES `shard` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `simdata_master`.`server`
+-- Table `server`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `simdata_master`.`server` ;
+DROP TABLE IF EXISTS `server` ;
 
-CREATE TABLE IF NOT EXISTS `simdata_master`.`server` (
+CREATE TABLE IF NOT EXISTS `server` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `serverTypeId` INT(11) UNSIGNED NULL DEFAULT NULL,
   `shardId` INT(11) UNSIGNED NOT NULL,
@@ -118,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `simdata_master`.`server` (
   `objectKey` CHAR(36) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `enabled` TINYINT(1) NOT NULL DEFAULT 1,
-  `created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created` TIMESTAMP NOT NULL,
   `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `positionX` FLOAT NULL,
   `positionY` FLOAT NULL,
@@ -134,38 +127,38 @@ CREATE TABLE IF NOT EXISTS `simdata_master`.`server` (
   INDEX `fk_server_region1_idx` (`regionId` ASC),
   CONSTRAINT `fk_shardId`
     FOREIGN KEY (`shardId`)
-    REFERENCES `simdata_master`.`shard` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE RESTRICT,
+    REFERENCES `shard` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_ownerId`
     FOREIGN KEY (`ownerId`)
-    REFERENCES `simdata_master`.`agent` (`id`)
-    ON DELETE RESTRICT
-    ON UPDATE RESTRICT,
+    REFERENCES `agent` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_stats_server_user1`
     FOREIGN KEY (`userId`)
-    REFERENCES `simdata_master`.`user` (`id`)
+    REFERENCES `user` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_server_server_type1`
     FOREIGN KEY (`serverTypeId`)
-    REFERENCES `simdata_master`.`server_type` (`id`)
+    REFERENCES `server_type` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_server_region1`
     FOREIGN KEY (`regionId`)
-    REFERENCES `simdata_master`.`region` (`id`)
+    REFERENCES `region` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `simdata_master`.`population`
+-- Table `population`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `simdata_master`.`population` ;
+DROP TABLE IF EXISTS `population` ;
 
-CREATE TABLE IF NOT EXISTS `simdata_master`.`population` (
+CREATE TABLE IF NOT EXISTS `population` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `serverId` INT(11) UNSIGNED NOT NULL,
   `time` INT(10) UNSIGNED NOT NULL,
@@ -174,18 +167,18 @@ CREATE TABLE IF NOT EXISTS `simdata_master`.`population` (
   INDEX `fk_serverId_idx` (`serverId` ASC),
   CONSTRAINT `fk_serverId`
     FOREIGN KEY (`serverId`)
-    REFERENCES `simdata_master`.`server` (`id`)
+    REFERENCES `server` (`id`)
     ON DELETE CASCADE
-    ON UPDATE RESTRICT)
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `simdata_master`.`item`
+-- Table `item`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `simdata_master`.`item` ;
+DROP TABLE IF EXISTS `item` ;
 
-CREATE TABLE IF NOT EXISTS `simdata_master`.`item` (
+CREATE TABLE IF NOT EXISTS `item` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `vendorId` INT(11) UNSIGNED NOT NULL,
   `objectKey` CHAR(36) NOT NULL,
@@ -196,26 +189,26 @@ CREATE TABLE IF NOT EXISTS `simdata_master`.`item` (
   `copy` TINYINT(1) NOT NULL DEFAULT 1,
   `modify` TINYINT(1) NOT NULL DEFAULT 1,
   `transfer` TINYINT(1) NOT NULL DEFAULT 0,
-  `created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created` TIMESTAMP NOT NULL,
   `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `key_UNIQUE` (`objectKey` ASC),
   INDEX `fk_item_vendor1_idx` (`vendorId` ASC),
   CONSTRAINT `fk_item_vendor1`
     FOREIGN KEY (`vendorId`)
-    REFERENCES `simdata_master`.`server` (`id`)
-    ON DELETE RESTRICT
-    ON UPDATE RESTRICT)
+    REFERENCES `server` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
--- Table `simdata_master`.`transaction`
+-- Table `transaction`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `simdata_master`.`transaction` ;
+DROP TABLE IF EXISTS `transaction` ;
 
-CREATE TABLE IF NOT EXISTS `simdata_master`.`transaction` (
+CREATE TABLE IF NOT EXISTS `transaction` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `vendorId` INT(11) UNSIGNED NOT NULL,
   `itemId` INT(11) UNSIGNED NOT NULL,
@@ -228,27 +221,29 @@ CREATE TABLE IF NOT EXISTS `simdata_master`.`transaction` (
   INDEX `fk_transaction_vendor_idx` (`vendorId` ASC),
   CONSTRAINT `fk_transaction_item1`
     FOREIGN KEY (`itemId`)
-    REFERENCES `simdata_master`.`item` (`id`)
-    ON DELETE RESTRICT
-    ON UPDATE RESTRICT,
+    REFERENCES `item` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_transaction_vendor`
     FOREIGN KEY (`vendorId`)
-    REFERENCES `simdata_master`.`server` (`id`),
+    REFERENCES `server` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_transaction_agent1`
     FOREIGN KEY (`agentId`)
-    REFERENCES `simdata_master`.`agent` (`id`)
-    ON DELETE RESTRICT
-    ON UPDATE RESTRICT)
+    REFERENCES `agent` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
--- Table `simdata_master`.`unverified_token`
+-- Table `unverified_token`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `simdata_master`.`unverified_token` ;
+DROP TABLE IF EXISTS `unverified_token` ;
 
-CREATE TABLE IF NOT EXISTS `simdata_master`.`unverified_token` (
+CREATE TABLE IF NOT EXISTS `unverified_token` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `authToken` BINARY(32) NOT NULL,
   `created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -262,13 +257,12 @@ SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
 -- -----------------------------------------------------
--- Data for table `simdata_master`.`server_type`
+-- Data for table `server_type`
 -- -----------------------------------------------------
 START TRANSACTION;
-USE `simdata_master`;
-INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Base Server');
-INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Population Server');
-INSERT INTO `simdata_master`.`server_type` (`id`, `name`) VALUES (NULL, 'Vendor Server');
+INSERT INTO `server_type` (`id`, `name`) VALUES (NULL, 'Base Server');
+INSERT INTO `server_type` (`id`, `name`) VALUES (NULL, 'Population Server');
+INSERT INTO `server_type` (`id`, `name`) VALUES (NULL, 'Vendor Server');
 
 COMMIT;
 

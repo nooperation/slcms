@@ -49,10 +49,11 @@ function AttemptToClaimServer($authToken, $userId, $serverType)
 	}
 	catch(Exception $ex)
 	{
+		LogToFile("confirmServer.php|Failed to InitServer", $ex->getMessage());
 		return false;
 	}
 
-	return !!$result;
+	return $result;
 }
 
 
@@ -71,7 +72,7 @@ if($serverResponse == "OK.")
 {
 	if(@file_get_contents($serverAddress . "?path=/Base/InitComplete") == "OK.")
 	{
-		if(AttemptToClaimServer($authToken, $userId, 'Base Server'))
+		if(!AttemptToClaimServer($authToken, $userId, 'Base Server'))
 		{
 			http_response_code("500");
 			die("Failed to claim server");

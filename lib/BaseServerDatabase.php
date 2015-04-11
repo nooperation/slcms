@@ -106,7 +106,8 @@ class BaseServerDatabase
 											serverTypeId = :serverTypeId,
 											userId = :userId
 										WHERE authToken = :authToken
-										AND serverTypeId is null
+										AND serverTypeId IS NULL
+										AND userId IS NULL
 										LIMIT 1");
 
 		$statement->execute(array(
@@ -192,7 +193,8 @@ class BaseServerDatabase
 											enabled,
 											positionX,
 											positionY,
-											positionZ
+											positionZ,
+											created
 										) VALUES (
 											:shardId,
 											:regionId,
@@ -206,7 +208,8 @@ class BaseServerDatabase
 											:enabled,
 											:positionX,
 											:positionY,
-											:positionZ
+											:positionZ,
+											CURRENT_TIMESTAMP()
 										)");
 
 		$statement->execute(array(
@@ -541,9 +544,9 @@ class BaseServerDatabase
 	public function RegisterUser($username, $password)
 	{
 		$statement = $this->db->prepare("INSERT INTO user (
-											name, hash
+											name, hash, created
 										) VALUES (
-											:name, :hash
+											:name, :hash, CURRENT_TIMESTAMP()
 										)");
 
 		$options = [
