@@ -4,12 +4,20 @@ require_once(dirname(__FILE__) . "/../lib/RequireCredentials.php");
 include_once(dirname(__FILE__) . "/../lib/BaseServerDatabase.php");
 include_once(dirname(__FILE__) . "/../lib/Utils.php");
 
-if(!isset($_GET['publicToken']))
+if(!isset($_GET["publicToken"]))
 {
 	http_response_code("500");
 	LogAndEchoJson("Missing publicToken");
 	die();
 }
+if(!isset($_GET["enabled"]))
+{
+	http_response_code("500");
+	LogAndEchoJson("Missing enabled");
+	die();
+}
+
+$enabled = (bool)$_GET["enabled"];
 $publicToken = @hex2bin($_GET["publicToken"]);
 if(!$publicToken)
 {
@@ -30,8 +38,13 @@ catch(Exception $ex)
 	die();
 }
 
-$serverAddress = $db->GetServerAddress($publicToken);
-
-$result = @file_get_contents($serverAddress . "?path=/Base/Confirm");
-
-echo json_encode($result == "OK.");
+if($db->SetServerStatus($publicToken, $userId, $enabled))
+{
+	die(json_encode($enabled));
+}
+else
+{
+	http_response_code("500");
+	LogAndEchoJson("Failed to set server status (likely already set).", $ex->getMessage());
+	die();
+}

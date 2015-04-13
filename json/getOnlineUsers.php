@@ -36,7 +36,7 @@ if($mapUrl == null || $mapUrl == "")
 	die();
 }
 
-$contents = @file_get_contents($mapUrl . "?path=/Base/GetOnlineUsers");
+$contents = @file_get_contents($mapUrl . "?path=/Base/GetAgentList");
 if($contents == "")
 {
 	http_response_code("500");

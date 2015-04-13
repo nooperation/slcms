@@ -9,7 +9,7 @@ function GenerateRandomToken()
 
 function LogAndEchoJson($message, $messagePrivate = null)
 {
-	echo '{"error":"' . $message . '"}';
+	echo json_encode(array('error' => $message));
 	LogToFile($message, $messagePrivate);
 }
 

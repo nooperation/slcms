@@ -1,15 +1,8 @@
 <?php
-session_start();
-if(!isset($_SESSION['user']))
-{
-	header("Location: index.php");
-	die();
-}
-$user = $_SESSION['user'];
-$userId = $user['id'];
-$userName = $user['name'];
 
+require_once(dirname(__FILE__) . "/../lib/RequireCredentials.php");
 include_once(dirname(__FILE__) . "/../lib/BaseServerDatabase.php");
+include_once(dirname(__FILE__) . "/../lib/Utils.php");
 
 try
 {

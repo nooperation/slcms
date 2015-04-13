@@ -4,7 +4,7 @@ require_once(dirname(__FILE__) . "/../lib/RequireCredentials.php");
 include_once(dirname(__FILE__) . "/../lib/BaseServerDatabase.php");
 include_once(dirname(__FILE__) . "/../lib/Utils.php");
 
-if(!isset($_GET['publicToken']))
+if(!isset($_GET["publicToken"]))
 {
 	http_response_code("500");
 	LogAndEchoJson("Missing publicToken");
@@ -30,8 +30,11 @@ catch(Exception $ex)
 	die();
 }
 
-$serverAddress = $db->GetServerAddress($publicToken);
+if($db->RemoveServer($publicToken, $userId))
+{
+	die(json_encode(true));
+}
 
-$result = @file_get_contents($serverAddress . "?path=/Base/Confirm");
-
-echo json_encode($result == "OK.");
+http_response_code("500");
+LogAndEchoJson("Failed to delete server.", $ex->getMessage());
+die();

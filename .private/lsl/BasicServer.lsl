@@ -90,11 +90,16 @@ integer ProcessRequest(list pathParts, key requestId)
     {
         string secondPathPart = llList2String(pathParts, 1);
         
-        if(secondPathPart == "GetOnlineUsers")
+        if(secondPathPart == "GetAgentList")
         {
             llHTTPResponse(requestId, 200, BuildQueryResult());
             return TRUE;
         }
+		else if(secondPathPart == "GetRegionAgentCount")
+		{
+			llHTTPResponse(requestId, 200, (string)llGetRegionAgentCount());
+			return TRUE;
+		}	
         else if(secondPathPart == "Confirm")
         {
             llOwnerSay("Sent -> OK");

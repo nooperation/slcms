@@ -1,59 +1,6 @@
 <?php
-	session_start();
-	if(!isset($_SESSION['user']))
-	{
-		header("Location: login.php");
-		die();
-	}
-
-	$user = $_SESSION['user'];
-	$userId = $user['id'];
-	$userName = $user['name'];
-
-	include_once(dirname(__FILE__) . "/lib/BaseServerDatabase.php");
-
-	try
-	{
-		$db = new BaseServerDatabase();
-		$db->ConnectToDatabase();
-	} catch(Exception $ex)
-	{
-		http_response_code("500");
-		LogToFile("Login.php|Failed to connect to database: ", $ex->getMessage());
-		die("Failed to connect to database.");
-	}
-
-	function AttemptToClaimServer($authToken, $userId, $serverType)
-	{
-		global $db;
-
-		try
-		{
-			$result = $db->InitServer($authToken, $userId, $serverType);
-		}
-		catch(Exception $ex)
-		{
-			return false;
-		}
-
-		return !!$result;
-	}
-
-	if(isset($_POST['authToken']))
-	{
-		$authToken = $_POST['authToken'];
-		if(!AttemptToClaimServer($authToken, $userId, 'Base Server'))
-		{
-			echo "Failed to claim server";
-		}
-		else
-		{
-			echo "Claimed server";
-		}
-	}
-
+	require_once(dirname(__FILE__) . "/lib/RequireCredentials.php");
 ?>
-
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -65,7 +12,7 @@
 	<meta name="viewport" content="width=device-width initial-scale=1.0 maximum-scale=1.0 user-scalable=0"  />
 
 	<script type="text/javascript" src="http://www.google.com/jsapi"></script>
-	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.5/angular.min.js"></script>
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.5/angular.min.js"></script>
 
 
 	<script type="text/javascript" src="js/graph-min.js"></script>
@@ -78,39 +25,6 @@
 	<link rel="stylesheet" type="text/css" href="css/graph.css">
 	<link rel="stylesheet" type="text/css" href="css/custom.css">
 
-
-	<style type="text/css">
-		html, body {
-			font: 10pt arial;
-			padding: 0;
-			margin: 0;
-			width: 100%;
-			height: 100%;
-		}
-
-		div.graph-frame {
-			border: none;
-		}
-
-		#info {
-			position: absolute;
-			z-index: 1;
-			top: 0px;
-			left: 0px;
-		}
-
-		td.child {
-			padding: 0 !important;
-			border: 5px solid #808080;
-		}
-
-		iframe {
-			width: 100%;
-			height: 100px;
-		}
-
-	</style>
-
 </head>
 
 <body ng-controller="userPageController as userPage">
@@ -119,10 +33,17 @@
 </div>
 
 <div class="serverList">
-	<div ng-repeat="server in userPage.servers"  ng-init="userPage.initUserPage(server.publicToken)">
-		<div class="serverListItem" id="server_{{server.publicToken}}">
+	<div ng-repeat="server in userPage.servers"  ng-init="userPage.initUserPage(server)">
+		<div class="serverListItem" id="server_{{server.publicToken}}" ng-class="{'serverDisabled' : !server.enabled, 'serverNotResponding': userPage.isServerResponding(server), 'serverBeingChecked' : userPage.isCheckingServer(server)}">
 			<div class="serverHeader" id="header_{{server.publicToken}}">
-				<h2 class="serverHeaderName">{{server.serverTypeName}} | Name: {{server.serverName}}</h2>
+				<h2 class="serverHeaderName">Name: {{server.serverName}} | Region: {{server.regionName}} | Count: {{server.agentCount}}</h2>
+			</div>
+			<div class="serverListItemOptions" id="options_{{server.publicToken}}">
+				<button ng-click="userPage.setServerStatus(server, 0)" ng-disabled="!server.enabled">Disable</button> |
+				<button ng-click="userPage.setServerStatus(server, 1)" ng-disabled="server.enabled">Enable</button> |
+				<button ng-click="userPage.regeneratePublicToken(server)">Regenerate public token</button> |
+				<button ng-click="userPage.regeneratePrivateToken(server)">Regenerate private token</button> |
+				<button ng-click="userPage.deleteServer(server)">Delete</button>
 			</div>
 			<div class="serverListItemDetails" id="details_{{server.publicToken}}">
 				<table class="serverListItemDetailsTable" cellpadding="0" class="display" width="100%">
@@ -134,11 +55,13 @@
 						<tr><td class="serverListItemDetailsKey">RegionName</td><td class="serverListItemDetailsValue">{{server.regionName}}</td></tr>
 						<tr><td class="serverListItemDetailsKey">ShardName</td><td class="serverListItemDetailsValue">{{server.shardName}}</td></tr>
 						<tr><td class="serverListItemDetailsKey">ServerTypeName</td><td class="serverListItemDetailsValue">{{server.serverTypeName}}</td></tr>
+						<tr><td class="serverListItemDetailsKey">ObjectKey</td><td class="serverListItemDetailsValue">{{server.objectKey}}</td></tr>
+						<tr><td class="serverListItemDetailsKey">Location</td><td class="serverListItemDetailsValue">secondlife://{{server.regionName}}/{{server.positionX}}/{{server.positionY}}/{{server.positionZ}}</td></tr>
+						<tr><td class="serverListItemDetailsKey">PublicToken</td><td class="serverListItemDetailsValue">{{server.publicToken}}</td></tr>
+						<tr><td class="serverListItemDetailsKey">PrivateToken</td><td class="serverListItemDetailsValue">{{server.authToken}}</td></tr>
 					</tbody>
 				</table>
 			</div>
-<!--			<div class="serverListItemContentsToggler" id="contentsToggler_{{server.publicToken}}" ng-click="userPage.toggleShown(server.publicToken)">Toggle</div>-->
-<!--			<div class="serverListItemContentsToggler" id="contentsToggler_{{server.publicToken}}" ng-click="userPage.reloadTable(server.publicToken)">Reload</div>-->
 			<div class="serverListItemContents" id="contents_{{server.publicToken}}" >
 				<div id="graph_{{server.publicToken}}" ></div>
 				<div>

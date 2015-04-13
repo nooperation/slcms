@@ -144,22 +144,19 @@ class BaseServerDatabase
 		$this->db->query('set foreign_key_checks=1;');
 	}
 
-	function RemoveServer($authToken)
+	function RemoveServer($publicToken, $userId)
 	{
 		$statement = $this->db->prepare("DELETE from server
-										WHERE authToken = :authToken
+										WHERE publicToken = :publicToken
+										AND userId = :userId
 										LIMIT 1");
 
 		$statement->execute(array(
-			'authToken' => $authToken,
+			'publicToken' => $publicToken,
+			'userId' => $userId,
 		));
 
-		if($statement->rowCount() != 1)
-		{
-			throw new Exception("Failed to delete server");
-		}
-
-		return $statement;
+		return $statement->rowCount() != 0;
 	}
 
 	function RegisterServer($shardName, $ownerKey, $ownerName, $objectKey, $serverName, $regionName, $address, $positionX, $positionY, $positionZ, $enabled)
@@ -251,18 +248,21 @@ class BaseServerDatabase
 		return;
 	}
 
-	function SetServerStatus($authToken, $isEnabled)
+	function SetServerStatus($publicToken, $userId, $isEnabled)
 	{
 		$statement = $this->db->prepare("UPDATE server SET
 											enabled = :isEnabled
-										WHERE authToken = :authToken
-										AND userId IS NOT NULL
+										WHERE publicToken = :publicToken
+										AND userId = :userId
 										AND serverTypeId IS NOT NULL
 										LIMIT 1");
 
-		$statement->bindParam('authToken', $authToken, PDO::PARAM_LOB);
+		$statement->bindParam('publicToken', $publicToken, PDO::PARAM_LOB);
 		$statement->bindParam('isEnabled', $isEnabled, PDO::PARAM_INT);
+		$statement->bindParam('userId', $userId, PDO::PARAM_INT);
 		$statement->execute();
+
+		return $statement->rowCount() != 0;
 	}
 
 	function UpdateServer($authToken, $objectKey, $address, $name, $shardName, $regionName, $positionX, $positionY, $positionZ, $enabled)
@@ -299,7 +299,7 @@ class BaseServerDatabase
 		return $statement->rowCount();
 	}
 
-	function RegenerateServerTokens($authToken)
+	function RegenerateServerTokens($publicToken, $userId)
 	{
 		$newAuthToken = GenerateRandomToken();
 		$newPublicToken = GenerateRandomToken();
@@ -307,12 +307,14 @@ class BaseServerDatabase
 		$statement = $this->db->prepare("UPDATE server SET
 											authToken = :newAuthToken,
 											publicToken = :newPublicToken
-										WHERE authToken = :authToken
+										WHERE publicToken = :publicToken
+										AND userId = :userId
 										LIMIT 1");
 		$statement->execute(array(
-			'authToken' => $authToken,
+			'publicToken' => $publicToken,
 			'newAuthToken' => $newAuthToken,
-			'newPublicToken' => $newPublicToken
+			'newPublicToken' => $newPublicToken,
+			'userId' => $userId
 		));
 
 		if($statement->rowCount() == 0)
@@ -320,20 +322,22 @@ class BaseServerDatabase
 			throw new Exception("Unable to regenerate server tokens for specified server");
 		}
 
-		return array('authToken' => $newAuthToken, 'publicToken' => $newPublicToken);
+		return array('authToken' => bin2hex($newAuthToken), 'publicToken' => bin2hex($newPublicToken));
 	}
 
-	function RegenerateServerAuthToken($authToken)
+	function RegenerateServerAuthToken($publicToken, $userId)
 	{
 		$newAuthToken = GenerateRandomToken();
 
 		$statement = $this->db->prepare("UPDATE server SET
 											authToken = :newAuthToken
-										WHERE authToken = :authToken
+										WHERE publicToken = :publicToken
+										AND userId = :userId
 										LIMIT 1");
 		$statement->execute(array(
-			'authToken' => $authToken,
-			'newAuthToken' => $newAuthToken
+			'publicToken' => $publicToken,
+			'newAuthToken' => $newAuthToken,
+			'userId' => $userId
 		));
 
 		if($statement->rowCount() == 0)
@@ -341,20 +345,22 @@ class BaseServerDatabase
 			throw new Exception("Unable to regenerate auth token for specified server");
 		}
 
-		return $newAuthToken;
+		return bin2hex($newAuthToken);
 	}
 
-	function RegenerateServerPublicToken($authToken)
+	function RegenerateServerPublicToken($publicToken, $userId)
 	{
 		$newPublicToken = GenerateRandomToken();
 
 		$statement = $this->db->prepare("UPDATE server SET
 											publicToken = :newPublicToken
-										WHERE authToken = :authToken
+										WHERE publicToken = :publicToken
+										AND userId = :userId
 										LIMIT 1");
 		$statement->execute(array(
-			'authToken' => $authToken,
-			'newPublicToken' => $newPublicToken
+			'publicToken' => $publicToken,
+			'newPublicToken' => $newPublicToken,
+			'userId' => $userId
 		));
 
 		if($statement->rowCount() == 0)
@@ -362,7 +368,7 @@ class BaseServerDatabase
 			throw new Exception("Unable to regenerate public token for specified server");
 		}
 
-		return $newPublicToken;
+		return bin2hex($newPublicToken);
 	}
 
 	function GetServerAddressPrivate($authToken)

@@ -28,7 +28,7 @@ div.graph-frame {
     min-width:1300px;
     height: 0%;
     margin: 0px;
-    background:  	#D1D1D1;
+    background: #81d184;
     padding-bottom: 5px;
     padding-top: 5px;
     margin-bottom: 10px;
@@ -91,5 +91,25 @@ div.graph-frame {
 }
 
 .serverNotResponding {
-    background: #E65D5D;
+    background: #ff8d8d;
+}
+
+.serverBeingChecked {
+    background: #D1D1D1;
+}
+
+.serverDisabled {
+    background: #454545;
+}
+
+.serverListItemOptions {
+    padding: 0px 20px 20px 20px;
+}
+
+html, body {
+    font: 10pt arial;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
 }

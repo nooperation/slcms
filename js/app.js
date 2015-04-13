@@ -7,7 +7,7 @@ google.setOnLoadCallback(function() {
 var myApp = angular.module('populationApp', []);
 var currentGraph = null;
 
-myApp.controller('userPageController',['$http', '$timeout', function($http, $timeout){
+myApp.controller('userPageController',['$http', '$timeout', '$scope', function($http, $timeout, $scope){
     var base = this;
     var servers = [];
 
@@ -15,57 +15,80 @@ myApp.controller('userPageController',['$http', '$timeout', function($http, $tim
         return true; //selectedServer == serverId;
     };
 
-    this.initUserPage = function(publicToken) {
-        $timeout(function() {
-            // Should be executed once all our objects have been rendered?
-            $.getJSON("json/getServerStatus.php?publicToken=" + publicToken, function(data) {
-                if(data) {
-                    base.setServerResponding(publicToken);
-                    base.showGraph(publicToken);
-                }
-                else {
-                    base.setServerNotResponding(publicToken);
-                }
+    this.regeneratePublicToken = function(server) {
+        var result = confirm("Regenerate public token for " + server.serverName + "?");
+        if(!result) {
+            return;
+        }
+
+        $.getJSON("json/setRegenerateTokens.php?mode=public&publicToken=" + server.publicToken).success(function(data) {
+            $scope.$apply(function() {
+                server.publicToken = data;
             });
         });
     };
 
-    this.setServerResponding = function(publicToken) {
-        var contentsElement = $("#server_" + publicToken);
-
-    };
-
-    this.setServerNotResponding = function(publicToken) {
-        var contentsElement = $("#server_" + publicToken);
-        contentsElement.addClass('serverNotResponding');
-    };
-
-    this.toggleShown = function(publicToken) {
-        var contentsElement = $("#contents_" + publicToken);
-
-        if(contentsElement.is(":hidden")) {
-            this.showGraph(publicToken);
-            contentsElement.show();
+    this.regeneratePrivateToken = function(server) {
+        var result = confirm("Regenerate private token for " + server.serverName + "?");
+        if(!result) {
+            return;
         }
-        else {
-            contentsElement.hide();
+
+        $.getJSON("json/setRegenerateTokens.php?mode=private&publicToken=" + server.publicToken).success(function(data) {
+            $scope.$apply(function() {
+                server.authToken = data;
+            });
+        });
+    };
+    
+    this.deleteServer = function(server) {
+        var result = prompt("Type the name of the server to delete it:");
+        if(result != server.serverName) {
+            alert("Aborting");
+            return;
         }
+
+        $.getJSON("json/setDeleteServer.php?publicToken=" + server.publicToken).success(function(data) {
+            $scope.$apply(function() {
+                base.reloadServers();
+            });
+        });
     };
 
-    this.reloadTable = function(publicToken) {
-        var tableElement =  $("#usersTable_" + publicToken).DataTable();
-
-        if(tableElement && tableElement.json) {
-            alert('reload');
-            tableElement.ajax.reload();
-        }
+    this.setServerStatus = function(server, isEnabled) {
+        $.getJSON("json/setServerStatus.php?publicToken=" + server.publicToken + "&enabled=" + isEnabled).success(function(data) {
+            $scope.$apply(function() {
+                server.enabled = data;
+            });
+        });
     };
 
-    this.showGraph = function(publicToken) {
-        this.loadTable(publicToken);
+    this.isCheckingServer = function(server) {
+        return server.agentCount == undefined;
     };
 
-    this.loadTable = function(publicToken) {
+    this.isServerResponding = function(server) {
+        return server.agentCount == 'N/A';
+    };
+
+    this.initUserPage = function(server) {
+        $timeout(function() {
+            // Should be executed once all our objects have been rendered?
+            $.getJSON("json/getRegionAgentCount.php?publicToken=" + server.publicToken).success(function(data) {
+                $scope.$apply(function() {
+                    server.agentCount = data;
+                    base.loadTable(server);
+                });
+            }).fail(function(data){
+                $scope.$apply(function() {
+                    server.agentCount = 'N/A';
+                });
+            });
+        });
+    };
+
+    this.loadTable = function(server) {
+        var publicToken = server.publicToken;
 
         $("#usersTable_" + publicToken).DataTable({
             "destroy": true,
@@ -118,10 +141,14 @@ myApp.controller('userPageController',['$http', '$timeout', function($http, $tim
         });
     };
 
-    $http.get('json/getServers.php').success(function(data) {
-        base.servers = data;
-    })
-    .error(function(data) {
-        alert("Failed to load servers: " + data);
-    });
+    this.reloadServers = function() {
+        $http.get('json/getServers.php').success(function(data) {
+            base.servers = data;
+        })
+        .error(function(data) {
+            alert("Failed to load servers: " + data);
+        });
+    };
+
+    this.reloadServers();
 }]);
