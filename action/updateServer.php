@@ -9,20 +9,19 @@ include_once(dirname(__FILE__) . "/../lib/Utils.php");
 if(!isset($_POST["address"]))
 {
 	http_response_code("500");
-	LogToFile("Missing address");
+	LogAndEcho("Missing address");
 	die();
 }
 if(!isset($_POST["authToken"]))
 {
 	http_response_code("500");
-	LogToFile("Missing authToken");
+	LogAndEcho("Missing authToken");
 	die();
 }
 
 $address = $_POST["address"];
-
-$authToken = @hex2bin($_POST["authToken"]);
-if(!$authToken)
+$authToken = $_POST["authToken"];
+if(!ctype_xdigit($authToken))
 {
 	http_response_code("500");
 	LogAndEcho("Invalid authToken");

@@ -72,8 +72,6 @@ class BaseServerDatabase
 
 		for($i = 0; $i < sizeof($result); ++$i)
 		{
-			$result[$i]['publicToken'] = bin2hex($result[$i]['publicToken']);
-			$result[$i]['authToken'] = bin2hex($result[$i]['authToken']);
 			$result[$i]['enabled'] = (bool)$result[$i]['enabled'];
 			$result[$i]['positionX'] = (float)$result[$i]['positionX'];
 			$result[$i]['positionY'] = (float)$result[$i]['positionY'];
@@ -322,7 +320,7 @@ class BaseServerDatabase
 			throw new Exception("Unable to regenerate server tokens for specified server");
 		}
 
-		return array('authToken' => bin2hex($newAuthToken), 'publicToken' => bin2hex($newPublicToken));
+		return array('authToken' => $newAuthToken, 'publicToken' => $newPublicToken);
 	}
 
 	function RegenerateServerAuthToken($publicToken, $userId)
@@ -345,7 +343,7 @@ class BaseServerDatabase
 			throw new Exception("Unable to regenerate auth token for specified server");
 		}
 
-		return bin2hex($newAuthToken);
+		return $newAuthToken;
 	}
 
 	function RegenerateServerPublicToken($publicToken, $userId)
@@ -368,7 +366,7 @@ class BaseServerDatabase
 			throw new Exception("Unable to regenerate public token for specified server");
 		}
 
-		return bin2hex($newPublicToken);
+		return $newPublicToken;
 	}
 
 	function GetServerAddressPrivate($authToken)
@@ -409,7 +407,7 @@ class BaseServerDatabase
 		return $result['address'];
 	}
 
-	function GetServer($authToken)
+	function GetServer($publicToken, $userId)
 	{
 		$statement = $this->db->prepare("SELECT
 											server.id,
@@ -439,11 +437,12 @@ class BaseServerDatabase
 											LEFT JOIN server_type on server_type.id = server.serverTypeId
 											LEFT JOIN user on user.id = server.userId
 										WHERE
-											server.authToken = :authToken
-											AND userId IS NOT NULL
+											server.publicToken = :publicToken
+											AND userId = :userId
 											AND serverTypeId IS NOT NULL");
 		$statement->execute(array(
-			'authToken' => $authToken
+			'publicToken' => $publicToken,
+			'userId' => $userId
 		));
 
 		$server = $statement->fetch(PDO::FETCH_ASSOC);
@@ -724,16 +723,6 @@ class BaseServerDatabase
 		return (int)$result['id'];
 	}
 
-	public function GetOrCreateServerTypeId($name)
-	{
-		$server_typeId = $this->GetServerTypeId($name);
-		if($server_typeId === null)
-		{
-			$server_typeId = $this->CreateServerType($name);
-		}
-
-		return $server_typeId;
-	}
 
 	////////////////////
 	// TABLE: agent

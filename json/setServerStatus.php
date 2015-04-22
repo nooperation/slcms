@@ -18,8 +18,8 @@ if(!isset($_GET["enabled"]))
 }
 
 $enabled = (bool)$_GET["enabled"];
-$publicToken = @hex2bin($_GET["publicToken"]);
-if(!$publicToken)
+$publicToken = $_GET['publicToken'];
+if(!ctype_xdigit($publicToken))
 {
 	http_response_code("500");
 	LogAndEchoJson("Invalid publicToken");
@@ -38,13 +38,11 @@ catch(Exception $ex)
 	die();
 }
 
-if($db->SetServerStatus($publicToken, $userId, $enabled))
-{
-	die(json_encode($enabled));
-}
-else
+if(!$db->SetServerStatus($publicToken, $userId, $enabled))
 {
 	http_response_code("500");
 	LogAndEchoJson("Failed to set server status (likely already set).", $ex->getMessage());
 	die();
 }
+
+echo json_encode($enabled);

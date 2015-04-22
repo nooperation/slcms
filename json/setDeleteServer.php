@@ -10,8 +10,8 @@ if(!isset($_GET["publicToken"]))
 	LogAndEchoJson("Missing publicToken");
 	die();
 }
-$publicToken = @hex2bin($_GET["publicToken"]);
-if(!$publicToken)
+$publicToken = $_GET['publicToken'];
+if(!ctype_xdigit($publicToken))
 {
 	http_response_code("500");
 	LogAndEchoJson("Invalid publicToken");
@@ -30,11 +30,11 @@ catch(Exception $ex)
 	die();
 }
 
-if($db->RemoveServer($publicToken, $userId))
+if(!$db->RemoveServer($publicToken, $userId))
 {
-	die(json_encode(true));
+	http_response_code("500");
+	LogAndEchoJson("Failed to delete server.", $ex->getMessage());
+	die();
 }
 
-http_response_code("500");
-LogAndEchoJson("Failed to delete server.", $ex->getMessage());
-die();
+echo json_encode(true);

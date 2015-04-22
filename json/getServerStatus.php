@@ -10,8 +10,8 @@ if(!isset($_GET['publicToken']))
 	LogAndEchoJson("Missing publicToken");
 	die();
 }
-$publicToken = @hex2bin($_GET["publicToken"]);
-if(!$publicToken)
+$publicToken = $_GET['publicToken'];
+if(!ctype_xdigit($publicToken))
 {
 	http_response_code("500");
 	LogAndEchoJson("Invalid publicToken");

@@ -64,18 +64,18 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 				'publicToken' => null,
 				'enabled' => true,
 				'serverTypeId' => null,
-				'serverTypeName' => null
+				'serverTypeName' => null,
+				'userId' => $i & 1 ? $this->testUsers[0]['id'] : $this->testUsers[$i]['id']
 			];
 
 			$tokens = $db->RegisterServer($server['shardName'], $server['ownerKey'], $server['ownerName'], $server['objectKey'], $server['serverName'], $server['regionName'], $server['address'], $server['positionX'], $server['positionY'], $server['positionZ'], $server['enabled']);
 			$server['authToken'] = $tokens['authToken'];
 			$server['publicToken'] = $tokens['publicToken'];
+			$server['serverTypeName'] = $db->GetThisServerTypeName();
+			$server['serverTypeId'] = $db->GetServerTypeId($server['serverTypeName']);
 
-			//if($i & 1)
-			{
-				$server['serverTypeId'] = $db->InitServer($server['authToken'], $this->testUsers[$i]['id'], 'Base Server');
-				$server['serverTypeName'] = $db->GetThisServerTypeName();
-			}
+			$this->assertNotNull($server['serverTypeId']);
+			$this->assertTrue($db->InitServer($server['authToken'], $server['userId'], 'Base Server'));
 
 			$servers []= $server;
 		}
@@ -125,13 +125,9 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 
 		foreach($this->testServers as $server)
 		{
-			if($server['serverTypeId'] === null)
-				continue;
-
 			$this->assertContains(array('id' => $server['serverTypeId'], 'name' => $server['serverTypeName']), $serverTypes);
 			$this->assertNotContains(array('id' => 999999, 'name' => $server['serverTypeName']), $serverTypes);
 			$this->assertNotContains(array('id' => $server['serverTypeId'], 'name' => $server['serverTypeName'] . 'MISSING'), $serverTypes);
-			break;
 		}
 	}
 
@@ -140,7 +136,7 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		foreach($this->testServers as $server)
 		{
 			// Check to see if test server exists in database
-			$serverFromDatabase = $this->db->GetServer($server['authToken']);
+			$serverFromDatabase = $this->db->GetServer($server['publicToken'], $server['userId']);
 			$this->assertNotEmpty($server);
 
 			// Verify all data matches...
@@ -202,7 +198,7 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		$this->db->UpdateServer($this->testServers[0]['authToken'], $this->testServers[0]['objectKey'], $newAddress, $newObjectName, $this->testServers[0]['shardName'], $newRegionName, $newX, $newY, $newZ, $newEnabled);
 
 		// Verify data exists
-		$server = $this->db->GetServer($this->testServers[0]['authToken']);
+		$server = $this->db->GetServer($this->testServers[0]['publicToken'], $this->testServers[0]['userId']);
 		$this->assertNotFalse($server);
 		$this->assertNotEmpty($server);
 		$this->assertEquals($newAddress, $server['address']);
@@ -229,8 +225,8 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 	public function testSetServerStatus()
 	{
 		// Test enabling server
-		$this->db->SetServerStatus($this->testServers[0]['authToken'], 1);
-		$server = $this->db->GetServer($this->testServers[0]['authToken']);
+		$this->db->SetServerStatus($this->testServers[0]['publicToken'], $this->testUsers[0]['id'], 1);
+		$server = $this->db->GetServer($this->testServers[0]['publicToken'], $this->testServers[0]['userId']);
 		$this->assertEquals($server['enabled'], 1);
 
 		// Confirm all servers have expected values in database...
@@ -238,15 +234,15 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		$this->testGetServer();
 
 		// Test disabling server
-		$this->db->SetServerStatus($this->testServers[0]['authToken'], 0);
-		$server = $this->db->GetServer($this->testServers[0]['authToken']);
+		$this->db->SetServerStatus($this->testServers[0]['publicToken'], $this->testUsers[0]['id'], 0);
+		$server = $this->db->GetServer($this->testServers[0]['publicToken'], $this->testServers[0]['userId']);
 		$this->assertEquals($server['enabled'], 0);
 
 		// Confirm all servers have expected values in database...
 		$this->testServers[0]['enabled'] = 0;
 		$this->testGetServer();
 	}
-
+/*
 	function testGetUninitializedServerAuthToken()
 	{
 		$this->assertEquals(null, $this->db->GetUninitializedServerAuthToken(null));
@@ -262,10 +258,11 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 
 		// TODO: Add check vs server that is already initialized...
 	}
+*/
 
 	function testRegenerateServerTokens()
 	{
-		$newTokens = $this->db->RegenerateServerTokens($this->testServers[0]['authToken']);
+		$newTokens = $this->db->RegenerateServerTokens($this->testServers[0]['publicToken'], $this->testUsers[0]['id']);
 
 		$this->assertNotEquals($this->testServers[0]['publicToken'], $newTokens['publicToken']);
 		$this->assertNotEquals($this->testServers[0]['authToken'], $newTokens['authToken']);
@@ -279,7 +276,7 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 
 	function testRegenerateServerAuthToken()
 	{
-		$newAuthToken = $this->db->RegenerateServerAuthToken($this->testServers[0]['authToken']);
+		$newAuthToken = $this->db->RegenerateServerAuthToken($this->testServers[0]['publicToken'], $this->testUsers[0]['id']);
 
 		$this->assertNotEquals($this->testServers[0]['authToken'], $newAuthToken);
 
@@ -291,7 +288,7 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 
 	function testRegenerateServerPublicToken()
 	{
-		$newPublicToken = $this->db->RegenerateServerPublicToken($this->testServers[0]['authToken']);
+		$newPublicToken = $this->db->RegenerateServerPublicToken($this->testServers[0]['publicToken'], $this->testUsers[0]['id']);
 
 		$this->assertNotEquals($this->testServers[0]['publicToken'], $newPublicToken);
 
@@ -307,14 +304,19 @@ class TestBaseServer extends PHPUnit_Framework_TestCase
 		$this->assertEquals($this->testServers[0]['address'], $this->db->GetServerAddress($this->testServers[0]['publicToken']));
 	}
 
+	function testGetServerAddressPrivate()
+	{
+		$this->assertEmpty($this->db->GetServerAddressPrivate("123"));
+		$this->assertEquals($this->testServers[0]['address'], $this->db->GetServerAddressPrivate($this->testServers[0]['authToken']));
+	}
+
 	function testRemoveServer()
 	{
-		$serverToRemove = $this->testServers[0]['authToken'];
+		$userId = $this->testUsers[0]['id'];
+		$publicToken = $this->testServers[0]['publicToken'];
 
-		$this->assertNotEmpty($this->db->GetServer($serverToRemove));
-
-		$this->db->RemoveServer($serverToRemove);
-
-		$this->assertEmpty($this->db->GetServer($serverToRemove));
+		$this->assertNotEmpty($this->db->GetServer($publicToken, $userId));
+		$this->db->RemoveServer($publicToken, $userId);
+		$this->assertEmpty($this->db->GetServer($publicToken, $userId));
 	}
 }

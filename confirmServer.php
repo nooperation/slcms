@@ -5,10 +5,13 @@ include_once(dirname(__FILE__) . "/lib/Utils.php");
 
 if(!isset($_GET['authToken']))
 {
-	die("Missing authToken");
+	http_response_code("500");
+	LogAndEcho("Missing authToken");
+	die();
 }
-$authToken = @hex2bin($_GET["authToken"]);
-if(!$authToken)
+
+$authToken = $_GET['authToken'];
+if(!ctype_xdigit($authToken))
 {
 	http_response_code("500");
 	LogAndEcho("Invalid authToken");

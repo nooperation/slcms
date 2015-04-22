@@ -29,11 +29,13 @@ class DataSetData
 
 if(!isset($_GET['publicToken']))
 {
-	die("Missing publicToken");
+	http_response_code("500");
+	LogAndEchoJson("Missing publicToken");
+	die();
 }
 
-$publicToken = @hex2bin($_GET['publicToken']);
-if(!$publicToken)
+$publicToken = $_GET['publicToken'];
+if(!ctype_xdigit($publicToken))
 {
 	http_response_code("500");
 	LogAndEchoJson("Invalid publicToken");

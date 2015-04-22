@@ -4,7 +4,12 @@ include_once(dirname(__FILE__) . "/../.private/config.php");
 
 function GenerateRandomToken()
 {
-	return openssl_random_pseudo_bytes(32);
+	return bin2hex(openssl_random_pseudo_bytes(32));
+}
+
+function EchoJsonError($message)
+{
+	echo json_encode(array('error' => $message));
 }
 
 function LogAndEchoJson($message, $messagePrivate = null)

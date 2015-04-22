@@ -45,7 +45,7 @@ catch(Exception $ex)
 	LogAndEcho("Failed to register server. See log for details.", $ex->getMessage());
 	die();
 }
-echo "OK." . bin2hex($authToken['authToken']);
+echo "OK." . $authToken['authToken'];
 
 LogToFile("New Base Server.");
 LogToFile("  shard = " . $slHeader->shard);
