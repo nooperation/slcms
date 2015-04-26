@@ -75,31 +75,37 @@ if(isset($_POST['username']) && isset($_POST['password']) && isset($_POST['passw
 
 ?>
 
+<!DOCTYPE HTML>
+<html ng-app="registerApp">
+<head>
+	<title>Simstats Registration</title>
 
+	<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.5/angular.min.js"></script>
 
-<!DOCTYPE html>
-<html>
-<head lang="en">
-	<meta charset="UTF-8">
-	<title></title>
+	<script type="text/javascript" src="./js/loginApp.js"></script>
+	<script type="text/javascript" src="./js/jquery.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="css/login.css">
 </head>
-<body>
-<div>
-
-	<p>Register</p>
+<body  ng-controller="registerPageController as registerPage">
+<div class="loginBox">
+	<h2>Register<br/>(Development)</h2>
 	<?php
 	if(isset($formError))
 	{
-		echo '<div class="error">Error: ' . $formError. '</div>';
+		echo "<div class='errorBox'>$formError</div>";
 	}
 	?>
 	<form action="register.php" method="post">
-		<div><label for="username">Username:</label> <input type="text" name="username" id="username"></div>
-		<div><label for="password">Password:</label> <input type="password" name="password" id="password"></div>
-		<div><label for="passwordConfirm">Password (confirm):</label> <input type="password" name="passwordConfirm" id="passwordConfirm"></div>
-		<div><button type="submit">Register</button> </div>
+
+		<div><input type="text" name="username" id="username" placeholder="Username" required></div>
+		<div><input type="password" name="password" id="password" placeholder="Password" required></div>
+		<div><input type="password" name="passwordConfirm" id="passwordConfirm" placeholder="Password (again)" required></div>
+		<div class="loginSubmitBox"><button type="submit">Register</button> </div>
+
 	</form>
-	<a href="login.php">Login</a>
+	<div class="loginExtras"><a href="login.php">Login</a></div>
 </div>
 </body>
 </html>

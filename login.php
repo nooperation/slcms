@@ -69,18 +69,18 @@ if(isset($_POST['username']) && isset($_POST['password']))
 	</head>
 <body  ng-controller="loginPageController as loginPage">
 <div class="loginBox">
-	<h2>Simstats (Development)</h2>
-	<form action="login.php" method="post">
-		<input type="text" name="username" id="username" placeholder="Username" required</div>
-		<div> <input type="password" name="password" id="password" placeholder="Password" required></div>
-		<div class="loginSubmitBox"><button type="submit">Login</button> </div>
-	</form>
+	<h2>Login<br/>(Development)</h2>
 	<?php
 	if(isset($formError))
 	{
-		echo "ERROR: " . $formError;
+		echo "<div class='errorBox'>$formError</div>";
 	}
 	?>
+	<form action="login.php" method="post">
+		<input type="text" name="username" id="username" placeholder="Username" required>
+		<div> <input type="password" name="password" id="password" placeholder="Password" required></div>
+		<div class="loginSubmitBox"><button type="submit">Login</button> </div>
+	</form>
 	<div class="loginExtras"><a href="register.php">Register</a></div>
 </div>
 </body>
