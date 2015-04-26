@@ -538,12 +538,12 @@ class BaseServerDatabase
 	// TABLE: user
 	////////////////////
 
-	public function RegisterUser($username, $password)
+	public function RegisterUser($username, $email, $password)
 	{
 		$statement = $this->db->prepare("INSERT INTO user (
-											name, hash, created
+											name, email, hash, created
 										) VALUES (
-											:name, :hash, CURRENT_TIMESTAMP()
+											:name, :email, :hash, CURRENT_TIMESTAMP()
 										)");
 
 		$options = [
@@ -554,6 +554,7 @@ class BaseServerDatabase
 
 		$statement->execute(array(
 			'name' => $username,
+			'email' => $email,
 			'hash' => $hash
 		));
 

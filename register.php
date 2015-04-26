@@ -11,7 +11,7 @@ include_once(dirname(__FILE__) . "/lib/BaseServerDatabase.php");
 include_once(dirname(__FILE__) . "/lib/Utils.php");
 
 
-function AttemptRegister($username, $password, $passwordConfirm)
+function AttemptRegister($username, $email, $password, $passwordConfirm)
 {
 	if($password != $passwordConfirm)
 	{
@@ -37,7 +37,7 @@ function AttemptRegister($username, $password, $passwordConfirm)
 	}
 
 
-	$user = $db->RegisterUser($username, $password);
+	$user = $db->RegisterUser($username, $email, $password);
 	if($user != null)
 	{
 		$userConfirm = $db->GetUser($username, $password);
@@ -64,13 +64,14 @@ function AttemptRegister($username, $password, $passwordConfirm)
 	return "Failed to register user.";
 }
 
-if(isset($_POST['username']) && isset($_POST['password']) && isset($_POST['passwordConfirm']))
+if(isset($_POST['username']) && isset($_POST['email']) && isset($_POST['password']) && isset($_POST['passwordConfirm']))
 {
 	$username = $_POST['username'];
+	$email = $_POST['email'];
 	$password = $_POST['password'];
 	$passwordConfirm = $_POST['passwordConfirm'];
 
-	$formError = AttemptRegister($username, $password, $passwordConfirm);
+	$formError = AttemptRegister($username, $email, $password, $passwordConfirm);
 }
 
 ?>
@@ -100,6 +101,7 @@ if(isset($_POST['username']) && isset($_POST['password']) && isset($_POST['passw
 	<form action="register.php" method="post">
 
 		<div><input type="text" name="username" id="username" placeholder="Username" required></div>
+		<div><input type="email" name="email" id="email" placeholder="E-Mail" required></div>
 		<div><input type="password" name="password" id="password" placeholder="Password" required></div>
 		<div><input type="password" name="passwordConfirm" id="passwordConfirm" placeholder="Password (again)" required></div>
 		<div class="loginSubmitBox"><button type="submit">Register</button> </div>

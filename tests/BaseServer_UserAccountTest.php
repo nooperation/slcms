@@ -55,12 +55,15 @@ class BaseServer_UserAccountTest extends PHPUnit_Framework_TestCase
 		{
 			$user = [
 				'name' => "TestUser-" . $i,
+				'email' => "TestEmail-" . $i . "@example.com",
 				'password' => "TestUserPassword-" . $i,
+				'id' => null,
 			];
 
-			$result = $db->RegisterUser($user['name'], $user['password']);
+			$result = $db->RegisterUser($user['name'], $user['email'], $user['password']);
 			$this->assertNotNull($result);
 
+			$user['id'] = $result;
 			$users []= $user;
 		}
 
