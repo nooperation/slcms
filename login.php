@@ -54,7 +54,7 @@ if(isset($_POST['username']) && isset($_POST['password']))
 
 ?>
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html ng-app="loginApp">
 	<head>
 		<title>Simstats Login</title>
@@ -69,11 +69,11 @@ if(isset($_POST['username']) && isset($_POST['password']))
 	</head>
 <body  ng-controller="loginPageController as loginPage">
 <div class="loginBox">
-	<h2>Login to SitenameHere</h2>
+	<h2>Simstats (Development)</h2>
 	<form action="login.php" method="post">
-		<div><label for="username">Username</label><div></div><input type="text" name="username" id="username"></div>
-		<div><label for="password">Password</div></label><div> <input type="password" name="password" id="password"></div>
-		<div><button type="submit">Login</button> </div>
+		<input type="text" name="username" id="username" placeholder="Username" required</div>
+		<div> <input type="password" name="password" id="password" placeholder="Password" required></div>
+		<div class="loginSubmitBox"><button type="submit">Login</button> </div>
 	</form>
 	<?php
 	if(isset($formError))
@@ -81,7 +81,7 @@ if(isset($_POST['username']) && isset($_POST['password']))
 		echo "ERROR: " . $formError;
 	}
 	?>
-	<a href="register.php">Register</a>
+	<div class="loginExtras"><a href="register.php">Register</a></div>
 </div>
 </body>
 </html>
