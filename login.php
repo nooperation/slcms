@@ -54,18 +54,25 @@ if(isset($_POST['username']) && isset($_POST['password']))
 
 ?>
 
-<!DOCTYPE html>
-<html>
-<head lang="en">
-	<meta charset="UTF-8">
-	<title></title>
-</head>
-<body>
-<div>
-	<p>Login</p>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html ng-app="loginApp">
+	<head>
+		<title>Simstats Login</title>
+
+		<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+		<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.5/angular.min.js"></script>
+
+		<script type="text/javascript" src="./js/loginApp.js"></script>
+		<script type="text/javascript" src="./js/jquery.js"></script>
+
+		<link rel="stylesheet" type="text/css" href="css/login.css">
+	</head>
+<body  ng-controller="loginPageController as loginPage">
+<div class="loginBox">
+	<h2>Login to SitenameHere</h2>
 	<form action="login.php" method="post">
-		<div><label for="username">Username:</label> <input type="text" name="username" id="username"></div>
-		<div><label for="password">Password:</label> <input type="password" name="password" id="password"></div>
+		<div><label for="username">Username</label><div></div><input type="text" name="username" id="username"></div>
+		<div><label for="password">Password</div></label><div> <input type="password" name="password" id="password"></div>
 		<div><button type="submit">Login</button> </div>
 	</form>
 	<?php

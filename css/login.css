@@ -1,0 +1,59 @@
+body {
+    background-color: rgba(72, 71, 75, 1.0);
+    font: 10pt arial;
+    width: 100%;
+    height: 100%;
+
+}
+
+.loginBox {
+    overflow: auto;
+    overflow-x: hidden;
+    background-color: white;
+    align-content: center;
+    margin: auto;
+    width: 512px;
+    border-radius: 25px;
+    box-shadow: 3px 3px 8px #181818;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 15px;
+
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%)
+
+}
+
+input {
+    padding: 5px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    width: 95%;
+}
+
+button {
+    horiz-align: center;
+    padding: 5px;
+    width: 128px;
+}
+h2 {
+    font-size: 24px;
+    text-align: center;
+}
+label {
+    font-size: 16px;
+    font-weight: bold;
+}
+input.password {
+    background-color: #a1aec7;
+}
+input.username {
+    background-color: #a1aec7;
+}
+.defaultText {
+    color: red;
+}

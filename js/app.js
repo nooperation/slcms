@@ -9,7 +9,7 @@ var currentGraph = null;
 
 myApp.controller('userPageController',['$http', '$timeout', '$scope', function($http, $timeout, $scope){
     var base = this;
-    var servers = [];
+    this.servers = [];
 
     this.isShown = function(publicToken) {
         return true; //selectedServer == serverId;
